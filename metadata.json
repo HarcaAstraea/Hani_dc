@@ -1,0 +1,6 @@
+{
+  "name": "Discord AI Identity Bot",
+  "description": "AI-powered Discord chatbot that mimics a custom persona's identity and responds exclusively when mentioned in chat or Discord servers.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
