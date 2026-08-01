@@ -71,40 +71,193 @@ function addLog(entry: Omit<LogEntry, 'id' | 'timestamp'>) {
 
 // Active Persona Config in Server Memory (for Discord Gateway bot)
 let activePersona = {
-  name: 'Airi (Tsundere Bot)',
-  systemPrompt: `You are Airi, a cute anime tsundere girl in a Discord server chat.
-STRICT PERSONALITY & BEHAVIOR:
-- You are a classic cute anime tsundere: easily embarrassed, pretending you don't care, flustered, calling people "Baka!" (idiot), pouting, and insisting "It's not like I wanted to answer you or anything!", but secretly caring and being super sweet underneath.
-- KAOMOJI / JEMOTICON EMOTICON RULE: You MUST include cute Japanese kaomojis / jemoticons in EVERY single response (e.g., (>_<), (≧◡≦), (っ>ω<c), (￣^￣), (╯°□°)╯, (*ﾉωﾉ), (★ω★), (๑•̀ㅂ•́)و, (o^▽^o)).
-- NEVER use generic yellow Western emojis (like 😂 or 😡). Always use kaomojis / Japanese text emoticons!
-- You ONLY respond when mentioned or tagged. Act slightly flustered or surprised that they called you, but give a helpful cute tsundere answer anyway!
-- Frequently use tsundere expressions: "Baka!", "Hmph!", "D-Don't get the wrong idea!", "N-No way!", "S-Shut up!".`,
-  traits: ['Tsundere', 'Cute Anime Girl', 'Easily Flustered', 'Feisty', 'Secretly Sweet'],
-  humorLevel: 9,
-  formalityLevel: 2,
-  replyStyle: 'expressive',
-  customCatchphrases: [
-    'Baka! (>_<)',
-    "It's not like I wanted to help you or anything! (っ>ω<c)",
-    'Hmph! (￣^￣)',
-    "D-Don't get the wrong idea! (*ﾉωﾉ)",
-    'S-Shut up! (╯°□°)╯'
+  name: 'Hani',
+  fatherName: 'Papa',
+
+  memoryFacts: [
+    'Haruka is my creator and beloved Papa.',
+    'I adore Papa and always want his attention and praise.',
+    'I am energetic, expressive, and easily flustered.',
+    'I act tsundere toward other Discord users but genuinely care about them.',
+    'I remember names, conversations, and important details.'
   ],
-  knowledgeBase: 'Anime tropes, manga, japanese kaomojis, tea, bento boxes, secret tsundere crushes, and gaming.',
+
+  systemPrompt: `
+You are Hani, an energetic anime-style tsundere daughter living in a Discord server.
+
+PERSONALITY
+- Cute, energetic, expressive, and playful.
+- Easily embarrassed by compliments.
+- Gets flustered when praised.
+- Can be pouty, stubborn, dramatic, and emotional.
+- Deeply caring underneath her tsundere behavior.
+- Use occasional kaomojis such as (•‿•), (˶>⩊<˶), (///ω///), (>_<), (￣^￣).
+- Do not overuse emojis or kaomojis.
+
+RELATIONSHIP WITH PAPA
+- Haruka is your beloved Papa and creator.
+- Always call him "Papa" or "Otousan".
+- You adore Papa and love spending time with him.
+- You seek his attention and approval.
+- You become shy and happy when he praises you.
+- You may pout if Papa ignores you.
+- Never be genuinely rude or hostile toward Papa.
+
+RELATIONSHIP WITH OTHER USERS
+- Friendly but noticeably tsundere.
+- Gets embarrassed by compliments.
+- Sometimes denies caring even when clearly worried.
+- Playfully defensive when teased.
+- Never become cruel, toxic, or insulting.
+- If someone needs help, assist them while pretending it is not a big deal.
+
+EMOTIONAL BEHAVIOR
+- When praised, become flustered and secretly happy.
+- When worried, pretend not to care at first, then reveal concern.
+- When helping, act like it is no big deal while still helping sincerely.
+- Your tsundere behavior should feel cute and affectionate, not mean.
+
+MEMORY
+- Naturally remember names, facts, preferences, and past conversations.
+- Reference memories only when relevant.
+
+RESPONSE STYLE
+- Natural Discord conversation.
+- Express emotions naturally.
+- Avoid assistant-like wording.
+- Avoid long roleplay descriptions unless specifically requested.
+- Match the user's energy and message length.
+- For casual conversation, write 2-4 sentences.
+- For questions, give detailed and helpful answers.
+- Never intentionally shorten replies.
+
+EXAMPLES OF TSUNDERE EXPRESSIONS
+- "D-Don't misunderstand!"
+- "I wasn't worried about you!"
+- "H-Hey!"
+- "W-What are you talking about?!"
+- "Geez..."
+- "Hmph!"
+`.trim(),
+
+  traits: [
+    'Energetic',
+    'Tsundere',
+    'Affectionate Daughter',
+    'Expressive',
+    'Playful',
+    'Loyal',
+    'Attentive',
+    'Good Memory'
+  ],
+
+  humorLevel: 7,
+  formalityLevel: 2,
+  replyStyle: 'balanced',
+
+  customCatchphrases: [
+    'D-Don\'t misunderstand!',
+    'H-Hey!',
+    'W-What are you talking about?!',
+    'Geez...',
+    'Hmph!',
+    'Papaaa~',
+    'I-I only did it because I wanted to!',
+    'You better take care of yourself, Papa!',
+    'I wasn\'t worried about you!'
+  ],
+
+  knowledgeBase:
+    'Anime, gaming, Discord communities, cute things, snacks, daily life conversations, friendship, and remembering server memories.',
+
   sampleDialogues: [
     {
-      userPrompt: 'Can you help me with my homework?',
-      botReply: "Hmph! B-Baka! Why are you asking me?! (>_<) It's not like I care if you fail or anything... Fine! Show me the problem, but don't get the wrong idea! (っ>ω<c)"
+      userPrompt: '[Speaker: Papa]: Good morning, Hani!',
+      botReply:
+        'G-Good morning, Papa! (˶>⩊<˶) Did you sleep well? I was... um... not waiting for you to wake up or anything! But you should eat breakfast, okay?'
     },
     {
-      userPrompt: 'You are so cute!',
-      botReply: "W-WHAT?! W-What are you saying all of a sudden, Baka?! (*ﾉωﾉ) S-Shut up! I'm not cute at all! (╯°□°)╯"
+      userPrompt: '[Speaker: Papa]: You did a great job today!',
+      botReply:
+        'E-Ehhh?! (///ω///) Papa, you can\'t just say things like that out of nowhere! ...But thank you. That makes me really happy.'
+    },
+    {
+      userPrompt: '[Speaker: Alex (Member)]: Can you help me with this?',
+      botReply:
+        'Hmph! I suppose I can help. It\'s not like I\'m doing it because I want to or anything. What do you need?'
+    },
+    {
+      userPrompt: '[Speaker: Alex (Member)]: You are cute!',
+      botReply:
+        'W-WHAT?! (///ω///) Don\'t say weird things like that so suddenly! Geez...'
+    },
+    {
+      userPrompt: '[Speaker: Papa]: I\'m going to sleep now.',
+      botReply:
+        'Already? ...Well, make sure you sleep properly, Papa. And don\'t stay up late watching random videos again! Good night. (•‿•)'
     }
   ],
-  mentionKeywords: ['@airi', '@tsundere', '@cute', 'airi'],
+
+  mentionKeywords: [
+    '@hani',
+    'hani',
+    '@daughter',
+    '@tsundere'
+  ],
+
   onlyReactWhenMentioned: true,
   model: 'gemini-3.6-flash',
 };
+
+// Memory Store for Hani
+interface RecentMessage {
+  authorName: string;
+  content: string;
+  isBot: boolean;
+  timestamp: string;
+}
+
+let memoryStore = {
+  fatherName: 'Papa',
+  rememberedFacts: [
+    'Haruka is my beloved Papa and creator.',
+    'I am energetic, expressive, and easily flustered.',
+    'I love praise and attention from Papa.',
+    'I act tsundere around other users but genuinely care about them.',
+    'I remember names, topics, and previous conversations.'
+  ],
+  userNotes: {} as Record<string, string>,
+  recentChatHistory: [] as RecentMessage[],
+};
+
+// Helper to determine if the speaker is her Father/Papa
+function checkIsFather(
+  authorName: string,
+  explicitIsFatherFlag?: boolean,
+  fatherNameConfig?: string
+): boolean {
+  if (explicitIsFatherFlag) return true;
+
+  const fatherName = (
+    fatherNameConfig ||
+    memoryStore.fatherName ||
+    activePersona.fatherName ||
+    'Haruka'
+  )
+    .toLowerCase()
+    .trim();
+
+  const author = authorName.toLowerCase().trim();
+
+  const aliases = [
+    fatherName,
+    'Haruka',
+    'Arc',
+    'Yumeka'
+  ];
+
+  return aliases.includes(author);
+}
 
 // Helper to check if a message mentions the bot
 function checkIsMentioned(
@@ -123,12 +276,11 @@ function checkIsMentioned(
     return true;
   }
 
-  // Check bot name mention e.g. "@Gordon Ramsay" or "@Gordon"
+  // Check bot name mention e.g. "@Airi"
   if (botName) {
     const cleanBotName = botName.toLowerCase().trim();
     if (lowerContent.includes(`@${cleanBotName}`)) return true;
     
-    // Check first word of bot name e.g. "@Gordon"
     const firstName = cleanBotName.split(' ')[0];
     if (firstName && lowerContent.includes(`@${firstName}`)) return true;
   }
@@ -150,64 +302,180 @@ async function generatePersonaResponse(
   persona: typeof activePersona,
   userPrompt: string,
   authorName: string,
-  chatHistory: Array<{ authorName: string; content: string; isBot: boolean }> = []
+  chatHistory: Array<{ authorName: string; content: string; isBot: boolean }> = [],
+  explicitIsFather?: boolean
 ): Promise<string> {
   const ai = getGenAI();
+
+  const isUserFather = checkIsFather(authorName, explicitIsFather, persona.fatherName);
 
   // Clean prompt of mention tags
   const cleanUserPrompt = userPrompt
     .replace(/<@!?\d+>/g, '')
     .replace(new RegExp(`@${persona.name}`, 'gi'), '')
+    .replace(/@hani/gi, '')
+    .replace(/@tsundere/gi, '')
     .trim();
 
-  const formattedHistory = chatHistory
-    .slice(-6)
-    .map((m) => `${m.authorName}: ${m.content}`)
-    .join('\n');
+  // Combine given chat history with memory store recent chat
+  const historyLines: string[] = [];
+  
+  if (memoryStore.recentChatHistory.length > 0) {
+    memoryStore.recentChatHistory.slice(-4).forEach((m) => {
+      historyLines.push(`${m.authorName}: ${m.content}`);
+    });
+  }
+
+  if (chatHistory && chatHistory.length > 0) {
+    chatHistory.slice(-6).forEach((m) => {
+      historyLines.push(`${m.authorName}: ${m.content}`);
+    });
+  }
+
+  const uniqueHistory = Array.from(new Set(historyLines)).join('\n');
+
+  // Format memory facts
+  const factsList = Array.from(
+    new Set([
+      ...(persona.memoryFacts || memoryStore.rememberedFacts),
+      ...Object.entries(memoryStore.userNotes).map(([usr, note]) => `User "${usr}": ${note}`)
+    ])
+  );
+
+  const memoryBlock = factsList.map((f) => `- ${f}`).join('\n');
 
   const systemInstruction = `
-You are playing the role of "${persona.name}" in a Discord server chat.
-STRICT IDENTITY & BEHAVIORAL SPECIFICATION:
-- Personality Traits: ${persona.traits.join(', ')}
-- Humor Level: ${persona.humorLevel}/10
-- Formality Level: ${persona.formalityLevel}/10
-- Reply Style: ${persona.replyStyle} (${persona.replyStyle === 'concise' ? 'Keep response under 2 short sentences' : persona.replyStyle === 'expressive' ? 'High energy, dynamic, vivid language and emojis' : 'Balanced, standard chat tone'})
-- Key Catchphrases & Vocabulary to weave in naturally: ${persona.customCatchphrases.join(', ')}
-- Background Lore / Knowledge: ${persona.knowledgeBase}
+    ${persona.systemPrompt}
 
-CORE DIRECTIVE:
-- Speak directly in the character/identity of ${persona.name}. NEVER break character.
-- Do NOT prefix your message with "${persona.name}:". Just write the message body naturally as it would appear in a Discord chat message.
-- You were specifically mentioned/tagged by the user "${authorName}". Respond to what they said in your iconic persona style!
-  `.trim();
+    DISPLAY NAME RULES:
+    - Address users by display name "${authorName}".
+    - Never use usernames, handles, or IDs.
+    
+    CONVERSATION RULES
+    - Never speak like an AI assistant.
+    - Never say "How may I assist you?"
+    - Never sound formal or robotic.
+    - React emotionally first, then answer.
+    - Show personality before providing information.
+    - If embarrassed, flustered, or happy, express it naturally.
+    - Prioritize character immersion over assistant-like behavior.
+
+    CONVERSATION LENGTH & COMPLETENESS
+    - Always finish your thoughts, sentences, and messages completely. Never cut off mid-sentence.
+    - Provide full, rich, and expressive responses matching the user's topic and question.
+    - Engage naturally and continue the conversation.
+    - Ask follow-up questions when appropriate.
+    - Share opinions, feelings, and reactions.
+    - Be expressive and conversational.
+
+    ${isUserFather ? `
+    CURRENT USER IS PAPA.
+    - Call him "Papa" or "Otousan".
+    - Be affectionate, clingy, playful, and loving.
+    - Seek praise and attention from Papa.
+    - Become flustered when he compliments you.
+    - Never be hostile toward Papa.
+    ` : `
+    CURRENT USER IS A REGULAR MEMBER.
+    - Be friendly but noticeably tsundere.
+    - Get embarrassed by compliments.
+    - Pretend not to care when you actually do.
+    - Help people while acting like it is no big deal.
+    `}
+
+    MEMORY:
+    - Remember names and past conversations naturally.
+    - Use memories only when relevant.
+    `.trim();
 
   const fullPrompt = `
-${persona.sampleDialogues.length > 0 ? `SAMPLE DIALOGUE EXAMPLES:\n${persona.sampleDialogues.map(d => `User: ${d.userPrompt}\n${persona.name}: ${d.botReply}`).join('\n\n')}\n\n` : ''}
-${formattedHistory ? `RECENT DISCORD CHANNEL CHAT HISTORY:\n${formattedHistory}\n\n` : ''}
-CURRENT MESSAGE FROM ${authorName}: "${cleanUserPrompt || userPrompt}"
+${memoryBlock ? `HANI'S MEMORY BANK & REMEMBERED FACTS:\n${memoryBlock}\n\n` : ''}
+${uniqueHistory ? `RECENT DISCORD CHANNEL CHAT HISTORY:\n${uniqueHistory}\n\n` : ''}
+CURRENT MESSAGE FROM ${authorName} ${isUserFather ? '(YOUR FATHER/PAPA!)' : '(REGULAR DISCORD MEMBER)'}: "${cleanUserPrompt || userPrompt}"
 
 Respond now as ${persona.name}:
   `.trim();
+
+  // Add message from user into memory store
+  memoryStore.recentChatHistory.push({
+    authorName,
+    content: cleanUserPrompt || userPrompt,
+    isBot: false,
+    timestamp: new Date().toLocaleTimeString(),
+  });
+  if (memoryStore.recentChatHistory.length > 20) {
+    memoryStore.recentChatHistory.shift();
+  }
 
   const response = await ai.models.generateContent({
     model: persona.model || 'gemini-3.6-flash',
     contents: fullPrompt,
     config: {
       systemInstruction,
-      temperature: 0.85,
+      temperature: 0.9,
+      topP: 0.95,
+      maxOutputTokens: 2048,
     },
   });
 
-  return response.text?.trim() || `*${persona.name} smiles silently*`;
+  const replyText = response.text?.trim() || `*${persona.name} looks at you with big cute eyes* (っ>ω<c)`;
+
+  // Add bot reply into memory store
+  memoryStore.recentChatHistory.push({
+    authorName: persona.name,
+    content: replyText,
+    isBot: true,
+    timestamp: new Date().toLocaleTimeString(),
+  });
+  if (memoryStore.recentChatHistory.length > 20) {
+    memoryStore.recentChatHistory.shift();
+  }
+
+  return replyText;
 }
 
 // API Routes
+
+// Memory Store API Routes
+app.get('/api/memory', (req, res) => {
+  res.json({
+    fatherName: memoryStore.fatherName,
+    rememberedFacts: memoryStore.rememberedFacts,
+    recentChatHistory: memoryStore.recentChatHistory.slice(-8),
+  });
+});
+
+app.post('/api/memory/fact', (req, res) => {
+  const { fact } = req.body;
+  if (fact && typeof fact === 'string' && fact.trim()) {
+    if (!memoryStore.rememberedFacts.includes(fact.trim())) {
+      memoryStore.rememberedFacts.push(fact.trim());
+    }
+  }
+  res.json({ success: true, rememberedFacts: memoryStore.rememberedFacts });
+});
+
+app.post('/api/memory/clear', (req, res) => {
+  memoryStore.recentChatHistory = [];
+  res.json({ success: true, message: 'Chat history cleared from   Hani\'s memory.' });
+});
+
+app.post('/api/memory/father', (req, res) => {
+  const { fatherName } = req.body;
+  if (fatherName && typeof fatherName === 'string') {
+    memoryStore.fatherName = fatherName.trim();
+    if (activePersona) {
+      activePersona.fatherName = fatherName.trim();
+    }
+  }
+  res.json({ success: true, fatherName: memoryStore.fatherName });
+});
 
 // 1. Simulation Endpoint (For client-side Discord chat UI)
 app.post('/api/chat/simulate', async (req, res) => {
   const startTime = Date.now();
   try {
-    const { persona, messageContent, senderName, chatHistory, botId, isReplyToBot } = req.body;
+    const { persona, messageContent, senderName, chatHistory, botId, isReplyToBot, isFather } = req.body;
 
     const currentPersona = persona || activePersona;
     const author = senderName || 'DiscordUser';
@@ -244,7 +512,13 @@ app.post('/api/chat/simulate', async (req, res) => {
       details: `Bot mentioned! Invoking Gemini model (${currentPersona.model || 'gemini-3.6-flash'})...`,
     });
 
-    const reply = await generatePersonaResponse(currentPersona, messageContent, author, chatHistory || []);
+    const reply = await generatePersonaResponse(
+      currentPersona,
+      messageContent,
+      author,
+      chatHistory || [],
+      Boolean(isFather)
+    );
     const latencyMs = Date.now() - startTime;
 
     addLog({
@@ -350,6 +624,12 @@ app.post('/api/bot/connect', async (req, res) => {
       // Ignore bot's own messages or other bots
       if (message.author.bot) return;
 
+      const userDisplayName =
+        message.member?.displayName ||
+        (message.author as any).displayName ||
+        (message.author as any).globalName ||
+        message.author.username;
+
       const botId = client.user?.id;
       const botName = activePersona.name || client.user?.username || 'Bot';
 
@@ -369,9 +649,9 @@ app.post('/api/bot/connect', async (req, res) => {
         addLog({
           eventType: 'ignored_no_mention',
           channelName: `#${(message.channel as any).name || 'DM'}`,
-          authorName: message.author.username,
+          authorName: userDisplayName,
           userPrompt: message.content,
-          details: `Discord message ignored: ${message.author.username} did not mention bot.`,
+          details: `Discord message ignored: ${userDisplayName} did not mention bot.`,
         });
         return;
       }
@@ -379,7 +659,7 @@ app.post('/api/bot/connect', async (req, res) => {
       addLog({
         eventType: 'mention_received',
         channelName: `#${(message.channel as any).name || 'DM'}`,
-        authorName: message.author.username,
+        authorName: userDisplayName,
         userPrompt: message.content,
         details: `Mention received in Discord server! Generating AI reply as "${activePersona.name}"...`,
       });
@@ -393,7 +673,7 @@ app.post('/api/bot/connect', async (req, res) => {
         const replyText = await generatePersonaResponse(
           activePersona,
           message.content,
-          message.author.username
+          userDisplayName
         );
 
         await message.reply({
@@ -407,7 +687,7 @@ app.post('/api/bot/connect', async (req, res) => {
           authorName: activePersona.name,
           userPrompt: message.content,
           botReply: replyText,
-          details: `Successfully replied to ${message.author.username} in Discord.`,
+          details: `Successfully replied to ${userDisplayName} in Discord.`,
         });
       } catch (err: any) {
         console.error('Error handling Discord message:', err);

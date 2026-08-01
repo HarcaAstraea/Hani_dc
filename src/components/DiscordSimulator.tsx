@@ -11,16 +11,66 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({ activePerson
   const [activeChannel, setActiveChannel] = useState('general-chat');
   const [inputText, setInputText] = useState('');
   const [currentUser, setCurrentUser] = useState<DiscordUser>({
-    id: 'user-alex',
-    name: 'Alex (You)',
-    tag: 'Alex#1234',
-    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=128&q=80',
+    id: 'user-papa',
+    name: 'Papa (Father & Creator)',
+    tag: 'Papa#0001',
+    avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=128&q=80',
     isBot: false,
-    roleColor: '#38bdf8',
+    roleColor: '#f59e0b',
+    roleName: 'Father / Creator',
     status: 'online',
   });
 
-  const [botUser] = useState<DiscordUser>({
+  const [memoryFacts, setMemoryFacts] = useState<string[]>([]);
+  const [showMemoryPanel, setShowMemoryPanel] = useState(false);
+  const [newMemoryFact, setNewMemoryFact] = useState('');
+
+  // Fetch memory facts from server
+  const fetchMemory = async () => {
+    try {
+      const res = await fetch('/api/memory');
+      if (res.ok) {
+        const data = await res.json();
+        setMemoryFacts(data.rememberedFacts || []);
+      }
+    } catch (e) {
+      // Memory endpoint fail silently
+    }
+  };
+
+  useEffect(() => {
+    fetchMemory();
+  }, []);
+
+  const handleAddMemoryFact = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMemoryFact.trim()) return;
+    try {
+      const res = await fetch('/api/memory/fact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fact: newMemoryFact.trim() }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setMemoryFacts(data.rememberedFacts);
+        setNewMemoryFact('');
+      }
+    } catch (e) {
+      console.error('Failed to add memory fact', e);
+    }
+  };
+
+  const handleClearMemoryHistory = async () => {
+    try {
+      await fetch('/api/memory/clear', { method: 'POST' });
+      fetchMemory();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const botUser: DiscordUser = {
     id: 'bot-identity',
     name: activePersona.name,
     tag: `${activePersona.name.replace(/\s+/g, '')}#0001`,
@@ -30,7 +80,7 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({ activePerson
     roleName: 'AI Identity Bot',
     status: 'online',
     customStatus: `Tagged ONLY: @${activePersona.name}`,
-  });
+  };
 
   const [messages, setMessages] = useState<DiscordMessage[]>([
     {
@@ -170,9 +220,10 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({ activePerson
           body: JSON.stringify({
             persona: activePersona,
             messageContent: userMessageContent,
-            senderName: currentUser.name,
+            senderName: currentUser.name.replace(/\s*\([^)]*\)/, '').trim(),
             chatHistory,
             botId: 'bot-identity',
+            isFather: currentUser.id === 'user-papa' || currentUser.name.toLowerCase().includes('papa') || currentUser.name.toLowerCase().includes('father'),
           }),
         });
 
@@ -292,10 +343,21 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({ activePerson
             <select
               value={currentUser.id}
               onChange={(e) => {
-                if (e.target.value === 'user-alex') {
+                if (e.target.value === 'user-papa') {
+                  setCurrentUser({
+                    id: 'user-papa',
+                    name: 'Papa (Father & Creator)',
+                    tag: 'Papa#0001',
+                    avatarUrl:
+                      'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=128&q=80',
+                    isBot: false,
+                    roleColor: '#f59e0b',
+                    roleName: 'Father / Creator',
+                  });
+                } else if (e.target.value === 'user-alex') {
                   setCurrentUser({
                     id: 'user-alex',
-                    name: 'Alex (You)',
+                    name: 'Alex (Member)',
                     tag: 'Alex#1234',
                     avatarUrl:
                       'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=128&q=80',
@@ -305,7 +367,7 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({ activePerson
                 } else {
                   setCurrentUser({
                     id: 'user-sam',
-                    name: 'Sam',
+                    name: 'Sam (Member)',
                     tag: 'Sam#5678',
                     avatarUrl:
                       'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=128&q=80',
@@ -314,10 +376,11 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({ activePerson
                   });
                 }
               }}
-              className="bg-[#313338] text-[10px] text-[#dbdee1] border border-[#3f4147] rounded px-1.5 py-1 focus:outline-none"
+              className="bg-[#313338] text-[10px] text-amber-300 border border-amber-500/40 rounded px-2 py-1 focus:outline-none font-bold cursor-pointer"
             >
-              <option value="user-alex">Alex</option>
-              <option value="user-sam">Sam</option>
+              <option value="user-papa">👑 Papa (Father / Creator)</option>
+              <option value="user-alex">👤 Alex (Other Member)</option>
+              <option value="user-sam">👤 Sam (Other Member)</option>
             </select>
           </div>
         </div>
@@ -330,16 +393,81 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({ activePerson
               <Hash className="w-5 h-5 text-[#80848e]" />
               <span className="font-bold text-white text-sm truncate">#{activeChannel}</span>
               <span className="text-slate-600">|</span>
-              <span className="text-xs text-[#949ba4] truncate hidden sm:inline">
-                Tag <span className="text-indigo-400 font-semibold">@{activePersona.name}</span> to trigger AI. Untagged messages stay quiet!
-              </span>
+              {currentUser.id === 'user-papa' ? (
+                <span className="text-xs text-amber-300 font-semibold px-2 py-0.5 bg-amber-500/10 border border-amber-500/30 rounded-full flex items-center gap-1">
+                  👑 You are Hani's Papa (Sweet & Loving Daughter Mode Active)
+                </span>
+              ) : (
+                <span className="text-xs text-purple-300 font-semibold px-2 py-0.5 bg-purple-500/10 border border-purple-500/30 rounded-full flex items-center gap-1">
+                  ⚡ Regular Member (Classic Feisty Tsundere Mode Active)
+                </span>
+              )}
             </div>
 
-            <div className="px-2.5 py-1 bg-[#2b2d31] rounded border border-[#3f4147] text-[11px] font-medium text-amber-300 flex items-center space-x-1">
-              <ShieldAlert className="w-3.5 h-3.5" />
-              <span>Mention-Only Mode</span>
+            <div className="flex items-center space-x-2">
+              <button
+                type="button"
+                onClick={() => setShowMemoryPanel(!showMemoryPanel)}
+                className="px-2.5 py-1 bg-indigo-600/30 border border-indigo-500/50 hover:bg-indigo-600/50 text-indigo-300 text-[11px] font-semibold rounded flex items-center space-x-1.5 transition"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                <span>Memory Bank ({memoryFacts.length})</span>
+              </button>
+
+              <div className="px-2.5 py-1 bg-[#2b2d31] rounded border border-[#3f4147] text-[11px] font-medium text-amber-300 flex items-center space-x-1 hidden md:flex">
+                <ShieldAlert className="w-3.5 h-3.5" />
+                <span>Mention-Only Mode</span>
+              </div>
             </div>
           </div>
+
+          {/* Memory Bank Drawer Modal / Banner */}
+          {showMemoryPanel && (
+            <div className="bg-[#2b2d31] border-b border-[#1f2023] p-3 text-xs space-y-2 text-slate-200">
+              <div className="flex items-center justify-between font-bold text-indigo-300">
+                <span className="flex items-center gap-1.5 text-sm">
+                  <Sparkles className="w-4 h-4 text-indigo-400" />
+                  Hani's Active Memory Bank & Context
+                </span>
+                <button
+                  type="button"
+                  onClick={handleClearMemoryHistory}
+                  className="text-[10px] text-rose-400 hover:underline"
+                >
+                  Clear Recent Chat History
+                </button>
+              </div>
+
+              <div className="bg-[#1e1f22] p-2.5 rounded-lg border border-[#3f4147] space-y-1.5 max-h-36 overflow-y-auto">
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Remembered Facts & Relationships:</p>
+                {memoryFacts.length === 0 ? (
+                  <p className="text-slate-500 italic text-[11px]">No custom facts stored yet.</p>
+                ) : (
+                  <ul className="list-disc list-inside space-y-1 text-[#dbdee1]">
+                    {memoryFacts.map((fact, idx) => (
+                      <li key={idx} className="truncate">{fact}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <form onSubmit={handleAddMemoryFact} className="flex gap-2">
+                <input
+                  type="text"
+                  value={newMemoryFact}
+                  onChange={(e) => setNewMemoryFact(e.target.value)}
+                  placeholder="Teach Hani a new memory fact (e.g., Papa loves Earl Grey tea)..."
+                  className="flex-1 bg-[#383a40] text-white text-xs rounded px-2.5 py-1.5 border border-[#404249] focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-semibold text-xs transition"
+                >
+                  Add Fact
+                </button>
+              </form>
+            </div>
+          )}
 
           {/* Messages Stream */}
           <div className="flex-1 p-4 overflow-y-auto space-y-4">
@@ -384,7 +512,7 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({ activePerson
 
                       {/* Content */}
                       <p className="text-sm text-[#dbdee1] leading-relaxed mt-0.5 whitespace-pre-wrap">
-                        {msg.content.split(new RegExp(`(@${activePersona.name}|@bot|@gordon|@chef)`, 'gi')).map((part, i) =>
+                        {msg.content.split(new RegExp(`(@${activePersona.name}|@bot|@hani|@tsundere|@daughter)`, 'gi')).map((part, i) =>
                           part.toLowerCase().includes(activePersona.name.toLowerCase()) || part.startsWith('@') ? (
                             <span key={i} className="bg-[#414675] text-[#c9cdfb] font-medium px-1 rounded hover:underline">
                               {part}

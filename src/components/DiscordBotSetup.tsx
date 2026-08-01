@@ -286,6 +286,60 @@ export const DiscordBotSetup: React.FC<DiscordBotSetupProps> = ({ activePersona,
           </div>
         </div>
       </div>
+
+      {/* 24/7 Continuous Hosting Guide */}
+      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+        <h3 className="text-lg font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-4">
+          <Server className="w-5 h-5 text-emerald-400" /> How to Run This Bot 24/7 Online
+        </h3>
+        <p className="text-xs text-slate-300 leading-relaxed">
+          The AI Studio preview environment is designed for interactive testing and temporary sessions. To keep <span className="text-emerald-400 font-semibold">{activePersona.name}</span> online 24/7 without interruption on Discord, deploy this project to a free or low-cost hosting platform:
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+          {/* Render / Railway */}
+          <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+            <div className="font-bold text-sm text-indigo-400 flex items-center gap-1.5">
+              <span>🚀 Cloud Hosting (Render / Railway)</span>
+            </div>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Export this project to GitHub (via the top menu), then import it as a <b>Web Service</b> or <b>Background Worker</b> on Render or Railway.
+            </p>
+            <div className="text-[11px] text-slate-300 bg-slate-900 p-2 rounded border border-slate-800 font-mono">
+              Build Command: npm run build<br />
+              Start Command: npm start
+            </div>
+          </div>
+
+          {/* VPS / Linux Server */}
+          <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+            <div className="font-bold text-sm text-emerald-400 flex items-center gap-1.5">
+              <span>🖥️ VPS / Cloud Server (PM2)</span>
+            </div>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Run on any Linux VPS (DigitalOcean, AWS, Hetzner, Oracle Free Tier) using <b>PM2</b> to keep the bot process alive continuously:
+            </p>
+            <div className="text-[11px] text-slate-300 bg-slate-900 p-2 rounded border border-slate-800 font-mono">
+              npm run build<br />
+              pm2 start dist/server.cjs --name "hani-bot"
+            </div>
+          </div>
+
+          {/* Env Vars */}
+          <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+            <div className="font-bold text-sm text-amber-400 flex items-center gap-1.5">
+              <span>🔑 Required Environment Vars</span>
+            </div>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Set these environment variables in your hosting provider's secret dashboard:
+            </p>
+            <div className="text-[11px] text-amber-300/90 bg-slate-900 p-2 rounded border border-slate-800 font-mono">
+              DISCORD_BOT_TOKEN=...<br />
+              GEMINI_API_KEY=...
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

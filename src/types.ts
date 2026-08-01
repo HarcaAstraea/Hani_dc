@@ -20,6 +20,8 @@ export interface PersonaProfile {
   onlyReactWhenMentioned: boolean;
   typingSpeedMs: number;
   model: string;
+  fatherName?: string; // Username/Name recognized as Father/Papa
+  memoryFacts?: string[]; // Array of remembered facts/context
 }
 
 export interface DiscordUser {

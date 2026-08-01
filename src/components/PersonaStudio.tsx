@@ -382,7 +382,7 @@ export const PersonaStudio: React.FC<PersonaStudioProps> = ({ activePersona, onS
           </div>
 
           {/* Sliders & Style */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 pt-2">
             <div>
               <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
                 Humor Level: <span className="text-indigo-400">{formData.humorLevel}/10</span>
@@ -438,6 +438,26 @@ export const PersonaStudio: React.FC<PersonaStudioProps> = ({ activePersona, onS
                 <option value="concise">Concise (1-2 Punchy Sentences)</option>
                 <option value="balanced">Balanced (Standard Discord Message)</option>
                 <option value="expressive">Expressive (High energy, Emojis & Drama)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                AI Model Engine (Free Tier)
+              </label>
+              <select
+                value={formData.model || 'gemini-3.6-flash'}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    model: e.target.value,
+                  })
+                }
+                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500"
+              >
+                <option value="gemini-3.6-flash">Gemini 3.6 Flash (Free Tier - Default)</option>
+                <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite (Free Tier - Ultra Fast)</option>
+                <option value="gemini-flash-latest">Gemini Flash Latest (Free Tier - Latest)</option>
               </select>
             </div>
           </div>

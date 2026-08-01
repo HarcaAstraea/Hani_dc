@@ -9,7 +9,7 @@ import { PersonaProfile, DiscordBotStatus } from './types';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'simulator' | 'persona' | 'setup' | 'logs'>('simulator');
-  const [activePersona, setActivePersona] = useState<PersonaProfile>(PRESET_PERSONAS[0]); // Gordon Ramsay default
+  const [activePersona, setActivePersona] = useState<PersonaProfile>(PRESET_PERSONAS[0]); // Hani default
   const [botStatus, setBotStatus] = useState<DiscordBotStatus>({
     isConnected: false,
     botUser: null,
@@ -34,6 +34,21 @@ export default function App() {
 
   useEffect(() => {
     fetchStatus();
+    // Fetch active persona from backend on initial mount
+    const fetchActivePersona = async () => {
+      try {
+        const res = await fetch('/api/persona/active');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.persona) {
+            setActivePersona((prev) => ({ ...prev, ...data.persona }));
+          }
+        }
+      } catch (err) {
+        // Fallback
+      }
+    };
+    fetchActivePersona();
   }, [fetchStatus]);
 
   // Sync active persona to backend server memory
