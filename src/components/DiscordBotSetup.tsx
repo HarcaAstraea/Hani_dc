@@ -306,7 +306,7 @@ export const DiscordBotSetup: React.FC<DiscordBotSetupProps> = ({ activePersona,
               Export this project to GitHub (via the top menu), then import it as a <b>Web Service</b> or <b>Background Worker</b> on Render or Railway.
             </p>
             <div className="text-[11px] text-slate-300 bg-slate-900 p-2 rounded border border-slate-800 font-mono">
-              Build Command: npm run build<br />
+              Build Command: npm install && npm run build<br />
               Start Command: npm start
             </div>
           </div>
@@ -337,6 +337,14 @@ export const DiscordBotSetup: React.FC<DiscordBotSetupProps> = ({ activePersona,
               DISCORD_BOT_TOKEN=...<br />
               GEMINI_API_KEY=...
             </div>
+            <a
+              href="https://aistudio.google.com/app/apikey"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-[11px] text-indigo-400 hover:text-indigo-300 underline font-medium pt-1"
+            >
+              Get Gemini API Key on Google AI Studio ↗
+            </a>
           </div>
         </div>
       </div>
