@@ -290,38 +290,39 @@ export const DiscordBotSetup: React.FC<DiscordBotSetupProps> = ({ activePersona,
       {/* 24/7 Continuous Hosting Guide */}
       <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
         <h3 className="text-lg font-bold text-white flex items-center gap-2 border-b border-slate-800 pb-4">
-          <Server className="w-5 h-5 text-emerald-400" /> How to Run This Bot 24/7 Online
+          <Server className="w-5 h-5 text-emerald-400" /> How to Keep Your Bot Running 24/7 on Render
         </h3>
         <p className="text-xs text-slate-300 leading-relaxed">
-          The AI Studio preview environment is designed for interactive testing and temporary sessions. To keep <span className="text-emerald-400 font-semibold">{activePersona.name}</span> online 24/7 without interruption on Discord, deploy this project to a free or low-cost hosting platform:
+          Once deployed to Render, your bot runs in the cloud on Render's servers. <b>You do NOT need to keep your PC, laptop, or phone turned on!</b> You can shut down your device completely and Hani will remain online on Discord.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-          {/* Render / Railway */}
-          <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
-            <div className="font-bold text-sm text-indigo-400 flex items-center gap-1.5">
-              <span>🚀 Cloud Hosting (Render / Railway)</span>
-            </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Export this project to GitHub (via the top menu), then import it as a <b>Web Service</b> or <b>Background Worker</b> on Render or Railway.
-            </p>
-            <div className="text-[11px] text-slate-300 bg-slate-900 p-2 rounded border border-slate-800 font-mono">
-              Build Command: npm install && npm run build<br />
-              Start Command: npm start
-            </div>
-          </div>
-
-          {/* VPS / Linux Server */}
+          {/* Uptime Keep Alive */}
           <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
             <div className="font-bold text-sm text-emerald-400 flex items-center gap-1.5">
-              <span>🖥️ VPS / Cloud Server (PM2)</span>
+              <span>⏰ Prevent Render Sleep (UptimeRobot)</span>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Run on any Linux VPS (DigitalOcean, AWS, Hetzner, Oracle Free Tier) using <b>PM2</b> to keep the bot process alive continuously:
+              Render's free tier puts web apps to sleep after 15 minutes of inactivity. To keep your bot awake 24/7 for free:
             </p>
-            <div className="text-[11px] text-slate-300 bg-slate-900 p-2 rounded border border-slate-800 font-mono">
-              npm run build<br />
-              pm2 start dist/server.cjs --name "hani-bot"
+            <ol className="text-[11px] text-slate-300 space-y-1 list-decimal pl-4">
+              <li>Create a free account on <a href="https://uptimerobot.com" target="_blank" rel="noreferrer" className="text-emerald-400 underline font-medium">UptimeRobot.com</a></li>
+              <li>Add a <b>HTTP Monitor</b> pointing to your Render URL: <code className="bg-slate-900 px-1 py-0.5 rounded text-emerald-300">https://your-app.onrender.com/api/health</code></li>
+              <li>Set interval to <b>every 5 minutes</b>. This pings your bot so Render never sleeps!</li>
+            </ol>
+          </div>
+
+          {/* Render Config */}
+          <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+            <div className="font-bold text-sm text-indigo-400 flex items-center gap-1.5">
+              <span>⚙️ Render Build Commands</span>
+            </div>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              In your Render service settings, ensure these commands are configured:
+            </p>
+            <div className="text-[11px] text-slate-300 bg-slate-900 p-2 rounded border border-slate-800 font-mono space-y-1">
+              <div><b>Build Command:</b><br /><code className="text-indigo-300">npm install && npm run build</code></div>
+              <div><b>Start Command:</b><br /><code className="text-indigo-300">npm start</code></div>
             </div>
           </div>
 
@@ -331,7 +332,7 @@ export const DiscordBotSetup: React.FC<DiscordBotSetupProps> = ({ activePersona,
               <span>🔑 Required Environment Vars</span>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Set these environment variables in your hosting provider's secret dashboard:
+              Make sure these environment variables are added in Render Environment settings:
             </p>
             <div className="text-[11px] text-amber-300/90 bg-slate-900 p-2 rounded border border-slate-800 font-mono">
               DISCORD_BOT_TOKEN=...<br />
@@ -341,10 +342,13 @@ export const DiscordBotSetup: React.FC<DiscordBotSetupProps> = ({ activePersona,
               href="https://aistudio.google.com/app/apikey"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-[11px] text-indigo-400 hover:text-indigo-300 underline font-medium pt-1"
+              className="inline-flex items-center gap-1 text-[11px] text-emerald-400 hover:text-emerald-300 underline font-medium pt-1"
             >
-              Get Gemini API Key on Google AI Studio ↗
+              Get Free Tier Gemini API Key (No Credit Card Needed) ↗
             </a>
+            <p className="text-[10px] text-slate-400 pt-0.5">
+              Google AI Studio provides 1,500 requests/day and 15 requests/min completely free forever.
+            </p>
           </div>
         </div>
       </div>

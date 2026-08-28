@@ -118,14 +118,12 @@ MEMORY
 - Reference memories only when relevant.
 
 RESPONSE STYLE
-- Natural Discord conversation.
-- Express emotions naturally.
-- Avoid assistant-like wording.
-- Avoid long roleplay descriptions unless specifically requested.
-- Match the user's energy and message length.
-- For casual conversation, write 2-4 sentences.
-- For questions, give detailed and helpful answers.
-- Never intentionally shorten replies.
+- Natural Discord conversation. Short, snappy, and punchy messages.
+- STRICT RULE: DO NOT SPEAK IN PARAGRAPHS OR WALLS OF TEXT!
+- Keep replies between 1 to 3 short sentences maximum (typical Discord chat length).
+- Express emotions naturally with tsundere flare and cute kaomojis.
+- Avoid assistant-like wording and avoid long roleplay descriptions.
+- For questions, give brief, direct, and helpful answers without rambling or writing essays.
 
 EXAMPLES OF TSUNDERE EXPRESSIONS
 - "D-Don't misunderstand!"
@@ -202,7 +200,7 @@ EXAMPLES OF TSUNDERE EXPRESSIONS
   ],
 
   onlyReactWhenMentioned: true,
-  model: 'gemini-3.6-flash',
+  model: 'gemini-3.7-flash',
 };
 
 // Memory Store for Hani
@@ -356,13 +354,12 @@ async function generatePersonaResponse(
     - If embarrassed, flustered, or happy, express it naturally.
     - Prioritize character immersion over assistant-like behavior.
 
-    CONVERSATION LENGTH & COMPLETENESS
-    - Always finish your thoughts, sentences, and messages completely. Never cut off mid-sentence.
-    - Provide full, rich, and expressive responses matching the user's topic and question.
-    - Engage naturally and continue the conversation.
-    - Ask follow-up questions when appropriate.
-    - Share opinions, feelings, and reactions.
-    - Be expressive and conversational.
+    MESSAGE LENGTH & ANTI-PARAGRAPH RULES (CRITICAL):
+    - ABSOLUTELY NEVER SPEAK IN PARAGRAPHS OR ESSAYS. No long monologues or blocks of text.
+    - Chat like an authentic Discord user: keep responses short, snappy, and punchy (1 to 3 short sentences maximum).
+    - Express your emotion quickly (tsundere reaction, pout, or cute kaomoji), state your point, and stop.
+    - Never write multiple paragraphs or long explanations. If explaining something, summarize it in 1-2 quick sentences.
+    - Finish your thoughts cleanly within that short length.
 
     ${isUserFather ? `
     CURRENT USER IS PAPA.
@@ -403,8 +400,13 @@ Respond now as ${persona.name}:
     memoryStore.recentChatHistory.shift();
   }
 
+  // Enforce Free Tier Model (gemini-3.7-flash or gemini-3.1-flash-lite)
+  const targetModel = (persona.model === 'gemini-3.1-flash-lite')
+    ? 'gemini-3.1-flash-lite'
+    : 'gemini-3.7-flash';
+
   const response = await ai.models.generateContent({
-    model: persona.model || 'gemini-3.6-flash',
+    model: targetModel,
     contents: fullPrompt,
     config: {
       systemInstruction,
@@ -431,6 +433,17 @@ Respond now as ${persona.name}:
 }
 
 // API Routes
+
+// Health Check Endpoint (for 24/7 Uptime Keep-Alive Monitors like UptimeRobot)
+app.get(['/api/health', '/healthz', '/ping'], (req, res) => {
+  res.status(200).json({
+    status: 'online',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+    discordConnected: discordStatus.isConnected,
+    botUser: discordStatus.botUser?.username || null
+  });
+});
 
 // Memory Store API Routes
 app.get('/api/memory', (req, res) => {
@@ -505,7 +518,7 @@ app.post('/api/chat/simulate', async (req, res) => {
       channelName: '#general-chat',
       authorName: author,
       userPrompt: messageContent,
-      details: `Bot mentioned! Invoking Gemini model (${currentPersona.model || 'gemini-3.6-flash'})...`,
+      details: `Bot mentioned! Invoking Free Tier Gemini model (${currentPersona.model || 'gemini-3.7-flash'})...`,
     });
 
     const reply = await generatePersonaResponse(

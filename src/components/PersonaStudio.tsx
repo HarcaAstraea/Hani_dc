@@ -442,11 +442,16 @@ export const PersonaStudio: React.FC<PersonaStudioProps> = ({ activePersona, onS
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
-                AI Model Engine (Free Tier)
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                  AI Model Engine
+                </label>
+                <span className="px-2 py-0.5 bg-emerald-950/80 text-emerald-300 border border-emerald-800/80 rounded-full text-[10px] font-bold tracking-wide">
+                  ✓ 100% FREE TIER
+                </span>
+              </div>
               <select
-                value={formData.model || 'gemini-3.6-flash'}
+                value={formData.model || 'gemini-3.7-flash'}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
@@ -455,10 +460,13 @@ export const PersonaStudio: React.FC<PersonaStudioProps> = ({ activePersona, onS
                 }
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500"
               >
-                <option value="gemini-3.6-flash">Gemini 3.6 Flash (Free Tier - Default)</option>
-                <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite (Free Tier - Ultra Fast)</option>
-                <option value="gemini-flash-latest">Gemini Flash Latest (Free Tier - Latest)</option>
+                <option value="gemini-3.7-flash">Gemini 3.7 Flash (Free Tier • Best Intelligence & Speed)</option>
+                <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite (Free Tier • Ultra Fast & Light)</option>
+                <option value="gemini-flash-latest">Gemini Flash Latest (Free Tier • Auto-Updated)</option>
               </select>
+              <p className="text-[11px] text-emerald-400/90 mt-1.5 flex items-center gap-1">
+                <span>🔒 All models configured here are permanently locked to Google AI Studio's Free Tier (zero cost, 1,500 free requests/day).</span>
+              </p>
             </div>
           </div>
 

@@ -30,6 +30,9 @@ export const Header: React.FC<HeaderProps> = ({
                 <span className="px-2 py-0.5 text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-full flex items-center gap-1">
                   <Sparkles className="w-3 h-3" /> Mention Trigger Mode
                 </span>
+                <span className="hidden lg:inline-flex px-2 py-0.5 text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full items-center gap-1">
+                  Gemini Free Tier
+                </span>
               </div>
               <p className="text-xs text-slate-400 hidden sm:block">
                 Currently imitating: <span className="font-medium text-slate-200">{activePersona.name}</span>
