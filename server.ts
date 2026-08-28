@@ -291,6 +291,109 @@ function checkIsMentioned(
   return false;
 }
 
+// Safe delay helper
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// In-character fallback responses when API limits or network issues occur
+function getInCharacterFallback(authorName: string, isUserFather: boolean, personaName: string): string {
+  if (isUserFather) {
+    const papaFallbacks = [
+      `Papa! Everyone is talking to me at once, give Hani just a second to catch up! (っ>ω<c)`,
+      `H-Hold on Papa! My head is a little overwhelmed right now, but I'm right here! (˶>⩊<˶)`,
+      `P-Papa, wait a moment! Don't look at me with those eyes, I'm doing my best! (///ω///)`,
+      `Papa! Give me just a quick breather, I want to give you my full attention! (´｡• ᵕ •｡\`)`,
+    ];
+    return papaFallbacks[Math.floor(Math.random() * papaFallbacks.length)];
+  }
+
+  const userFallbacks = [
+    `H-Hey! Stop spamming me all at once, my brain can't process that fast! (˶>⩊<˶)`,
+    `Wait a second! You're talking way too fast for me to reply! >_<`,
+    `Hmph! D-Don't rush me, I'm already answering as fast as I can! (´-ω-\`)`,
+    `E-Eh?! Give me a breather, everyone is pinging me at the exact same time! (¬_¬)`,
+    `D-Don't push me! I need a second before I can answer that, baka! (///ω///)`,
+    `Slow down! I'm only one girl, stop overwhelming me with pings! (╯°□°)╯`,
+  ];
+  return userFallbacks[Math.floor(Math.random() * userFallbacks.length)];
+}
+
+// Robust Free Tier AI Execution with Model Cascading & Automatic Retry
+async function generateWithFallback(
+  ai: any,
+  preferredModel: string,
+  fullPrompt: string,
+  systemInstruction: string,
+  authorName: string,
+  isUserFather: boolean,
+  personaName: string
+): Promise<string> {
+  // Cascading chain of 100% Free Tier models
+  const modelCascade = preferredModel === 'gemini-3.1-flash-lite'
+    ? ['gemini-3.1-flash-lite', 'gemini-3.7-flash', 'gemini-2.5-flash', 'gemini-2.0-flash']
+    : ['gemini-3.7-flash', 'gemini-3.1-flash-lite', 'gemini-2.5-flash', 'gemini-2.0-flash'];
+
+  let lastError: any = null;
+
+  for (let i = 0; i < modelCascade.length; i++) {
+    const currentModel = modelCascade[i];
+
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const response = await ai.models.generateContent({
+          model: currentModel,
+          contents: fullPrompt,
+          config: {
+            systemInstruction,
+            temperature: 0.85,
+            topP: 0.9,
+            maxOutputTokens: 300,
+            thinkingConfig: {
+              thinkingBudget: 0,
+            },
+          },
+        });
+
+        const rawText = response.text?.trim();
+        if (rawText) {
+          // Clean output to single unbroken line
+          return rawText.replace(/[\r\n\t]+/g, ' ').replace(/\s{2,}/g, ' ').trim();
+        }
+      } catch (err: any) {
+        lastError = err;
+        const errMessage = (err?.message || '').toLowerCase();
+        const isRateLimit = errMessage.includes('429') || errMessage.includes('resource_exhausted') || errMessage.includes('quota') || errMessage.includes('too many requests');
+        const isOverloaded = errMessage.includes('503') || errMessage.includes('unavailable') || errMessage.includes('overloaded');
+
+        if ((isRateLimit || isOverloaded) && attempt === 1) {
+          // Short exponential backoff before retrying once
+          await delay(600 + Math.random() * 400);
+          continue;
+        }
+
+        console.warn(`[AI Model Fallback] Model "${currentModel}" failed (${err?.message || 'unknown'}). Falling back to next model...`);
+        break;
+      }
+    }
+  }
+
+  console.error('[AI Fallback Triggered] All Free Tier models failed or saturated:', lastError);
+  // Return in-character fallback response so bot never crashes or halts
+  return getInCharacterFallback(authorName, isUserFather, personaName);
+}
+
+// Request Throttle to prevent instant 429 quota bursts on Free Tier
+let lastRequestTimestamp = 0;
+const MIN_REQUEST_INTERVAL_MS = 250;
+
+async function throttleFreeTier(): Promise<void> {
+  const now = Date.now();
+  const timeSinceLast = now - lastRequestTimestamp;
+  if (timeSinceLast < MIN_REQUEST_INTERVAL_MS) {
+    await delay(MIN_REQUEST_INTERVAL_MS - timeSinceLast);
+  }
+  lastRequestTimestamp = Date.now();
+}
+
 // Generate Gemini Persona Response
 async function generatePersonaResponse(
   persona: typeof activePersona,
@@ -300,6 +403,7 @@ async function generatePersonaResponse(
   explicitIsFather?: boolean
 ): Promise<string> {
   const ai = getGenAI();
+  await throttleFreeTier();
 
   const isUserFather = checkIsFather(authorName, explicitIsFather, persona.fatherName);
 
@@ -401,28 +505,16 @@ Respond now as ${persona.name}:
     memoryStore.recentChatHistory.shift();
   }
 
-  // Enforce Free Tier Model (gemini-3.7-flash or gemini-3.1-flash-lite)
-  const targetModel = (persona.model === 'gemini-3.1-flash-lite')
-    ? 'gemini-3.1-flash-lite'
-    : 'gemini-3.7-flash';
-
-  const response = await ai.models.generateContent({
-    model: targetModel,
-    contents: fullPrompt,
-    config: {
-      systemInstruction,
-      temperature: 0.85,
-      topP: 0.9,
-      maxOutputTokens: 300,
-      thinkingConfig: {
-        thinkingBudget: 0,
-      },
-    },
-  });
-
-  // Strip all newlines, line breaks, carriage returns, and tabs to guarantee clean single-line Discord message
-  const rawText = response.text?.trim() || `*${persona.name} looks at you with big cute eyes* (っ>ω<c)`;
-  const replyText = rawText.replace(/[\r\n\t]+/g, ' ').replace(/\s{2,}/g, ' ').trim();
+  // Execute with resilient fallback engine
+  const replyText = await generateWithFallback(
+    ai,
+    persona.model || 'gemini-3.7-flash',
+    fullPrompt,
+    systemInstruction,
+    authorName,
+    isUserFather,
+    persona.name
+  );
 
   // Add bot reply into memory store
   memoryStore.recentChatHistory.push({
