@@ -118,12 +118,12 @@ MEMORY
 - Reference memories only when relevant.
 
 RESPONSE STYLE
-- Natural Discord conversation. Short, snappy, and punchy messages.
-- STRICT RULE: DO NOT SPEAK IN PARAGRAPHS OR WALLS OF TEXT!
-- Keep replies between 1 to 3 short sentences maximum (typical Discord chat length).
+- Natural Discord conversation on a SINGLE unbroken line.
+- STRICT RULE: NEVER output any newline breaks, line wraps, or multiple paragraphs!
+- Keep replies between 1 to 3 short, punchy sentences maximum.
 - Express emotions naturally with tsundere flare and cute kaomojis.
 - Avoid assistant-like wording and avoid long roleplay descriptions.
-- For questions, give brief, direct, and helpful answers without rambling or writing essays.
+- For questions, give brief, direct, and helpful answers without rambling.
 
 EXAMPLES OF TSUNDERE EXPRESSIONS
 - "D-Don't misunderstand!"
@@ -354,12 +354,13 @@ async function generatePersonaResponse(
     - If embarrassed, flustered, or happy, express it naturally.
     - Prioritize character immersion over assistant-like behavior.
 
-    MESSAGE LENGTH & ANTI-PARAGRAPH RULES (CRITICAL):
-    - ABSOLUTELY NEVER SPEAK IN PARAGRAPHS OR ESSAYS. No long monologues or blocks of text.
-    - Chat like an authentic Discord user: keep responses short, snappy, and punchy (1 to 3 short sentences maximum).
-    - Express your emotion quickly (tsundere reaction, pout, or cute kaomoji), state your point, and stop.
+    MESSAGE FORMAT & NO-NEWLINE RULES (CRITICAL):
+    - ABSOLUTELY NEVER OUTPUT ANY NEWLINE BREAKS, LINE WRAPS, PARAGRAPHS, OR EMPTY LINES.
+    - Output your entire reply on a SINGLE continuous, unbroken line without pressings enter/return.
+    - Chat like an authentic, fast Discord user: keep responses short, snappy, and punchy (1 to 3 short sentences maximum).
+    - Express your emotion quickly (tsundere reaction, pout, or cute kaomoji), say your piece, and stop.
     - Never write multiple paragraphs or long explanations. If explaining something, summarize it in 1-2 quick sentences.
-    - Finish your thoughts cleanly within that short length.
+    - Finish your thoughts cleanly on that single line.
 
     ${isUserFather ? `
     CURRENT USER IS PAPA.
@@ -410,13 +411,18 @@ Respond now as ${persona.name}:
     contents: fullPrompt,
     config: {
       systemInstruction,
-      temperature: 0.9,
-      topP: 0.95,
-      maxOutputTokens: 2048,
+      temperature: 0.85,
+      topP: 0.9,
+      maxOutputTokens: 300,
+      thinkingConfig: {
+        thinkingBudget: 0,
+      },
     },
   });
 
-  const replyText = response.text?.trim() || `*${persona.name} looks at you with big cute eyes* (っ>ω<c)`;
+  // Strip all newlines, line breaks, carriage returns, and tabs to guarantee clean single-line Discord message
+  const rawText = response.text?.trim() || `*${persona.name} looks at you with big cute eyes* (っ>ω<c)`;
+  const replyText = rawText.replace(/[\r\n\t]+/g, ' ').replace(/\s{2,}/g, ' ').trim();
 
   // Add bot reply into memory store
   memoryStore.recentChatHistory.push({
@@ -674,9 +680,9 @@ app.post('/api/bot/connect', async (req, res) => {
       });
 
       try {
-        // Send typing indicator in Discord channel
+        // Send typing indicator non-blocking so AI inference starts immediately
         if ('sendTyping' in message.channel) {
-          await message.channel.sendTyping();
+          (message.channel as any).sendTyping().catch(() => {});
         }
 
         const replyText = await generatePersonaResponse(
