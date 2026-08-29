@@ -388,6 +388,17 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({ activePerson
                     roleColor: '#a855f7',
                     roleName: 'Obeyed User (Sister Role)',
                   });
+                } else if (val === 'user-lumbo') {
+                  setCurrentUser({
+                    id: 'lumbo-112233',
+                    name: 'Lumbo',
+                    tag: 'Lumbo#7777',
+                    avatarUrl:
+                      'https://images.unsplash.com/photo-1566492031773-4f4e44671857?auto=format&fit=crop&w=128&q=80',
+                    isBot: false,
+                    roleColor: '#f43f5e',
+                    roleName: 'Festive Member',
+                  });
                 } else {
                   setCurrentUser({
                     id: '555666777888999000',
@@ -406,6 +417,7 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({ activePerson
               <option value={papaId}>👑 Papa (Father / Creator)</option>
               <option value={bestFriendId}>💖 Input 1: Best Friend (Caring, Non-Tsundere)</option>
               <option value={sisterRoleId}>👑 Input 2: Sister Role (Obeyed User)</option>
+              <option value="user-lumbo">🎵 Lumbo ("Lumbo lumbo, omatsuri lumbo")</option>
               <option value="555666777888999000">👤 Regular Member (Tsundere)</option>
             </select>
           </div>
@@ -430,6 +442,10 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({ activePerson
               ) : currentUser.id === sisterRoleId || currentUser.roleName.includes('Sister Role') || currentUser.roleName.includes('Obeyed') ? (
                 <span className="text-xs text-purple-300 font-semibold px-2 py-0.5 bg-purple-500/10 border border-purple-500/30 rounded-full flex items-center gap-1">
                   👑 Obeyed User (Sister-Like Obeying Always • Never Says Sister)
+                </span>
+              ) : currentUser.name.toLowerCase().includes('lumbo') ? (
+                <span className="text-xs text-rose-300 font-semibold px-2 py-0.5 bg-rose-500/10 border border-rose-500/30 rounded-full flex items-center gap-1">
+                  🎵 Lumbo ("Lumbo lumbo, omatsuri lumbo" Chant Active)
                 </span>
               ) : (
                 <span className="text-xs text-sky-300 font-semibold px-2 py-0.5 bg-sky-500/10 border border-sky-500/30 rounded-full flex items-center gap-1">

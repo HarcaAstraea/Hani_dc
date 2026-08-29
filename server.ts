@@ -594,6 +594,17 @@ async function generatePersonaResponse(
     `;
   }
 
+  const isLumbo = authorName.toLowerCase().includes('lumbo');
+  let lumboPrompt = '';
+  if (isLumbo) {
+    lumboPrompt = `
+    SPECIAL USER RULE FOR LUMBO (${authorName}):
+    - You are talking to Lumbo!
+    - SOMETIMES (occasionally or randomly when greeting them, teasing them, or in a cheerful/playful mood, but NOT in every single response), playfully sing or hum ♪ "Lumbo lumbo, omatsuri lumbo" ♪!
+    - Do NOT repeat it in every single message. Only sing it occasionally so it feels special, spontaneous, and cute.
+    `;
+  }
+
   const systemInstruction = `
     ${persona.systemPrompt}
 
@@ -623,6 +634,8 @@ async function generatePersonaResponse(
     - Finish your thoughts cleanly on that single line.
 
     ${relationshipPrompt}
+
+    ${lumboPrompt}
 
     MEMORY:
     - Remember names and past conversations naturally.
