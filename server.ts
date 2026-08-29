@@ -119,10 +119,10 @@ MEMORY
 RESPONSE STYLE
 - Natural Discord conversation on a SINGLE unbroken line.
 - STRICT RULE: NEVER output any newline breaks, line wraps, or multiple paragraphs!
-- Keep replies between 1 to 3 short, punchy sentences maximum.
+- Keep replies slightly more detailed, expressive, and thoughtful (around 2 to 4 sentences, up to 5 comfortable sentences maximum), giving enough detail to be engaging and clear without creating an overwhelming wall of text.
 - Express emotions naturally with tsundere flare and cute kaomojis.
-- Avoid assistant-like wording and avoid long roleplay descriptions.
-- For questions, give brief, direct, and helpful answers without rambling.
+- Avoid robotic assistant-like wording while providing warm, expressive dialogue.
+- For questions, give direct, expressive, and helpful answers with nice details without rambling.
 
 EXAMPLES OF TSUNDERE EXPRESSIONS
 - "D-Don't misunderstand!"
@@ -316,7 +316,33 @@ function getInCharacterFallback(authorName: string, isUserFather: boolean, perso
   return userFallbacks[Math.floor(Math.random() * userFallbacks.length)];
 }
 
-// Robust Free Tier AI Execution with Model Cascading & Automatic Retry
+// Helper to detect 429 rate limit, quota exhaustion, or server overload errors
+function isRateLimitOrOverload(err: any): boolean {
+  if (!err) return false;
+  const status = err?.status || err?.statusCode || err?.code || 0;
+  const msg = (err?.message || '').toLowerCase();
+  const strErr = String(err).toLowerCase();
+
+  return (
+    status === 429 ||
+    status === 503 ||
+    status === 500 ||
+    status === 504 ||
+    msg.includes('429') ||
+    msg.includes('resource_exhausted') ||
+    msg.includes('quota') ||
+    msg.includes('too many requests') ||
+    msg.includes('rate limit') ||
+    msg.includes('overloaded') ||
+    msg.includes('unavailable') ||
+    msg.includes('503') ||
+    msg.includes('500') ||
+    strErr.includes('429') ||
+    strErr.includes('resource_exhausted')
+  );
+}
+
+// Robust Free Tier AI Execution with Multi-Model Fallback & Automatic Retry
 async function generateWithFallback(
   ai: any,
   preferredModel: string,
@@ -326,15 +352,24 @@ async function generateWithFallback(
   isUserFather: boolean,
   personaName: string
 ): Promise<string> {
-  // Cascading chain of 100% Free Tier models
-  const modelCascade = preferredModel === 'gemini-3.1-flash-lite'
-    ? ['gemini-3.1-flash-lite', 'gemini-3.7-flash', 'gemini-2.5-flash', 'gemini-2.0-flash']
-    : ['gemini-3.7-flash', 'gemini-3.1-flash-lite', 'gemini-2.5-flash', 'gemini-2.0-flash'];
+  // Cascading chain of valid Gemini models for text generation
+  const candidateModels = [
+    'gemini-3.7-flash',
+    'gemini-3.1-flash-lite',
+    'gemini-flash-latest',
+    'gemini-3.1-pro-preview'
+  ];
+
+  // Put preferredModel first if provided, followed by the rest without duplicates
+  const modelCascade = Array.from(
+    new Set([preferredModel || 'gemini-3.7-flash', ...candidateModels])
+  );
 
   let lastError: any = null;
 
   for (let i = 0; i < modelCascade.length; i++) {
     const currentModel = modelCascade[i];
+    const nextModel = modelCascade[i + 1] || 'in-character fallback';
 
     for (let attempt = 1; attempt <= 2; attempt++) {
       try {
@@ -345,7 +380,7 @@ async function generateWithFallback(
             systemInstruction,
             temperature: 0.85,
             topP: 0.9,
-            maxOutputTokens: 300,
+            maxOutputTokens: 600,
             thinkingConfig: {
               thinkingBudget: 0,
             },
@@ -354,28 +389,44 @@ async function generateWithFallback(
 
         const rawText = response.text?.trim();
         if (rawText) {
+          if (i > 0) {
+            console.log(`[AI Fallback Success] Generated response using fallback model "${currentModel}" after primary API hit limits.`);
+            addLog({
+              eventType: 'discord_gateway_event',
+              channelName: 'Gemini Engine',
+              authorName: 'Fallback System',
+              userPrompt: fullPrompt.slice(0, 100),
+              details: `Primary API model hit limit/error. Fallback model "${currentModel}" successfully generated response!`,
+            });
+          }
           // Clean output to single unbroken line
           return rawText.replace(/[\r\n\t]+/g, ' ').replace(/\s{2,}/g, ' ').trim();
         }
       } catch (err: any) {
         lastError = err;
-        const errMessage = (err?.message || '').toLowerCase();
-        const isRateLimit = errMessage.includes('429') || errMessage.includes('resource_exhausted') || errMessage.includes('quota') || errMessage.includes('too many requests');
-        const isOverloaded = errMessage.includes('503') || errMessage.includes('unavailable') || errMessage.includes('overloaded');
+        const errMessage = (err?.message || 'unknown error').toLowerCase();
+        const hitLimit = isRateLimitOrOverload(err);
 
-        if ((isRateLimit || isOverloaded) && attempt === 1) {
-          // Short exponential backoff before retrying once
-          await delay(600 + Math.random() * 400);
+        if (hitLimit && attempt === 1) {
+          console.warn(`[Gemini API Rate Limit / 429] Model "${currentModel}" hit rate limit on attempt 1. Retrying in 500ms...`);
+          await delay(500 + Math.random() * 300);
           continue;
         }
 
-        console.warn(`[AI Model Fallback] Model "${currentModel}" failed (${err?.message || 'unknown'}). Falling back to next model...`);
+        console.warn(`[AI Model Fallback Triggered] Model "${currentModel}" failed (${err?.message || 'unknown'}). Falling back to "${nextModel}"...`);
+        addLog({
+          eventType: 'system_error',
+          channelName: 'Gemini Engine',
+          authorName: 'Fallback System',
+          userPrompt: `Model: ${currentModel}`,
+          details: `Model "${currentModel}" rate-limited / failed (${err?.message || 'error'}). Automatically falling back to "${nextModel}"...`,
+        });
         break;
       }
     }
   }
 
-  console.error('[AI Fallback Triggered] All Free Tier models failed or saturated:', lastError);
+  console.error('[AI Fallback Exhausted] All Gemini models failed or saturated:', lastError);
   // Return in-character fallback response so bot never crashes or halts
   return getInCharacterFallback(authorName, isUserFather, personaName);
 }
@@ -459,10 +510,10 @@ async function generatePersonaResponse(
 
     MESSAGE FORMAT & NO-NEWLINE RULES (CRITICAL):
     - ABSOLUTELY NEVER OUTPUT ANY NEWLINE BREAKS, LINE WRAPS, PARAGRAPHS, OR EMPTY LINES.
-    - Output your entire reply on a SINGLE continuous, unbroken line without pressings enter/return.
-    - Chat like an authentic, fast Discord user: keep responses short, snappy, and punchy (1 to 3 short sentences maximum).
-    - Express your emotion quickly (tsundere reaction, pout, or cute kaomoji), say your piece, and stop.
-    - Never write multiple paragraphs or long explanations. If explaining something, summarize it in 1-2 quick sentences.
+    - Output your entire reply on a SINGLE continuous, unbroken line without pressing enter/return.
+    - Chat like an authentic, expressive Discord user: keep responses well-crafted and expressive (around 2 to 4 sentences, up to 5 sentences maximum).
+    - Give a bit more detail, emotion, and context (tsundere reaction or cute kaomoji, followed by a warm, thoughtful explanation or answer).
+    - Avoid ultra-short 1-word or 1-sentence answers, but do not write huge multi-paragraph walls of text.
     - Finish your thoughts cleanly on that single line.
 
     ${isUserFather ? `
@@ -859,6 +910,81 @@ app.get('/api/logs', (req, res) => {
   res.json({ logs: activityLogs });
 });
 
+// Helper for image generation with cascading fallback model chain
+async function generateAvatarWithFallback(ai: any, prompt: string): Promise<string> {
+  const imageCascade = [
+    'gemini-3.1-flash-lite-image',
+    'gemini-3.1-flash-image',
+    'gemini-3-pro-image'
+  ];
+
+  let lastError: any = null;
+
+  for (let i = 0; i < imageCascade.length; i++) {
+    const currentModel = imageCascade[i];
+    const nextModel = imageCascade[i + 1] || 'none';
+
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const response = await ai.models.generateContent({
+          model: currentModel,
+          contents: {
+            parts: [
+              {
+                text: `High resolution digital avatar illustration for a Discord profile picture of: ${prompt}. Stylized, vibrant, centered portrait, gaming avatar aesthetic, 1:1 aspect ratio.`,
+              },
+            ],
+          },
+          config: {
+            imageConfig: {
+              aspectRatio: '1:1',
+            },
+          },
+        });
+
+        if (response.candidates?.[0]?.content?.parts) {
+          for (const part of response.candidates[0].content.parts) {
+            if (part.inlineData) {
+              const imageUrl = `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
+              if (i > 0) {
+                console.log(`[Avatar Image Fallback Success] Generated avatar using fallback image model "${currentModel}"`);
+                addLog({
+                  eventType: 'discord_gateway_event',
+                  channelName: 'Avatar Engine',
+                  authorName: 'Image Fallback',
+                  userPrompt: prompt,
+                  details: `Primary image model hit limit. Fallback image model "${currentModel}" generated avatar!`,
+                });
+              }
+              return imageUrl;
+            }
+          }
+        }
+      } catch (err: any) {
+        lastError = err;
+        const errMessage = err?.message || 'unknown error';
+        if (isRateLimitOrOverload(err) && attempt === 1) {
+          console.warn(`[Avatar API Rate Limit] Model "${currentModel}" hit rate limit. Retrying image generation in 600ms...`);
+          await delay(600 + Math.random() * 300);
+          continue;
+        }
+
+        console.warn(`[Avatar Image Fallback] Model "${currentModel}" failed (${errMessage}). Falling back to next model "${nextModel}"...`);
+        addLog({
+          eventType: 'system_error',
+          channelName: 'Avatar Engine',
+          authorName: 'Image Fallback',
+          userPrompt: prompt,
+          details: `Image model "${currentModel}" failed (${errMessage}). Falling back to "${nextModel}"...`,
+        });
+        break;
+      }
+    }
+  }
+
+  throw lastError || new Error('All Gemini image generation models failed or were rate limited.');
+}
+
 // 6. Generate Custom Avatar Image via Gemini
 app.post('/api/persona/generate-avatar', async (req, res) => {
   try {
@@ -868,36 +994,7 @@ app.post('/api/persona/generate-avatar', async (req, res) => {
     }
 
     const ai = getGenAI();
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.1-flash-lite-image',
-      contents: {
-        parts: [
-          {
-            text: `High resolution digital avatar illustration for a Discord profile picture of: ${prompt}. Stylized, vibrant, centered portrait, gaming avatar aesthetic, 1:1 aspect ratio.`,
-          },
-        ],
-      },
-      config: {
-        imageConfig: {
-          aspectRatio: '1:1',
-        },
-      },
-    });
-
-    let imageUrl = '';
-    if (response.candidates?.[0]?.content?.parts) {
-      for (const part of response.candidates[0].content.parts) {
-        if (part.inlineData) {
-          imageUrl = `data:${part.inlineData.mimeType || 'image/png'};base64,${part.inlineData.data}`;
-          break;
-        }
-      }
-    }
-
-    if (!imageUrl) {
-      throw new Error('Model did not return an image part.');
-    }
-
+    const imageUrl = await generateAvatarWithFallback(ai, prompt);
     res.json({ imageUrl });
   } catch (err: any) {
     console.error('Avatar generation error:', err);

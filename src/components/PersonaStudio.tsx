@@ -435,9 +435,9 @@ export const PersonaStudio: React.FC<PersonaStudioProps> = ({ activePersona, onS
                 }
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500"
               >
-                <option value="concise">Concise (1-2 Punchy Sentences)</option>
-                <option value="balanced">Balanced (Standard Discord Message)</option>
-                <option value="expressive">Expressive (High energy, Emojis & Drama)</option>
+                <option value="concise">Concise (1-2 Sentences)</option>
+                <option value="balanced">Balanced Expressive (2-4 Sentences • Recommended)</option>
+                <option value="expressive">Detailed & Dramatic (3-5 Sentences)</option>
               </select>
             </div>
 
@@ -447,7 +447,7 @@ export const PersonaStudio: React.FC<PersonaStudioProps> = ({ activePersona, onS
                   AI Model Engine
                 </label>
                 <span className="px-2 py-0.5 bg-emerald-950/80 text-emerald-300 border border-emerald-800/80 rounded-full text-[10px] font-bold tracking-wide">
-                  ✓ 100% FREE TIER
+                  ✓ AUTO FALLBACK ACTIVE
                 </span>
               </div>
               <select
@@ -460,12 +460,12 @@ export const PersonaStudio: React.FC<PersonaStudioProps> = ({ activePersona, onS
                 }
                 className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-slate-100 text-sm focus:outline-none focus:border-indigo-500"
               >
-                <option value="gemini-3.7-flash">Gemini 3.7 Flash (Free Tier • Best Intelligence & Speed)</option>
-                <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite (Free Tier • Ultra Fast & Light)</option>
-                <option value="gemini-flash-latest">Gemini Flash Latest (Free Tier • Auto-Updated)</option>
+                <option value="gemini-3.7-flash">Gemini 3.7 Flash (Primary • Best Intelligence & Speed)</option>
+                <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash Lite (Primary • Ultra Fast & Light)</option>
+                <option value="gemini-flash-latest">Gemini Flash Latest (Primary • Auto-Updated)</option>
               </select>
               <p className="text-[11px] text-emerald-400/90 mt-1.5 flex items-center gap-1">
-                <span>🔒 All models configured here are permanently locked to Google AI Studio's Free Tier (zero cost, 1,500 free requests/day).</span>
+                <span>⚡ Multi-Level Gemini Fallback: If your selected model hits rate limits (429/quota), it automatically falls back seamlessly to alternative Gemini models.</span>
               </p>
             </div>
           </div>
