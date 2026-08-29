@@ -10,6 +10,9 @@ export const PRESET_PERSONAS: PersonaProfile[] = [
       'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?auto=format&fit=crop&w=256&q=80',
 
     fatherName: 'Papa',
+    fatherDiscordUserId: '112233445566778899',
+    bestFriendDiscordUserId: '123456789012345678',
+    sisterRoleDiscordUserId: '987654321098765432',
 
     memoryFacts: [
       'Haruka is my creator and beloved Papa.',

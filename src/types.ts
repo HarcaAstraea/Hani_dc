@@ -21,6 +21,9 @@ export interface PersonaProfile {
   typingSpeedMs: number;
   model: string;
   fatherName?: string; // Username/Name recognized as Father/Papa
+  fatherDiscordUserId?: string; // Discord User ID for Father / Creator
+  bestFriendDiscordUserId?: string; // Input 1: Discord User ID for Longtime Best Friend (caring, non-tsundere)
+  sisterRoleDiscordUserId?: string; // Input 2: Discord User ID for Sister Role (obeys always, never implies sister)
   memoryFacts?: string[]; // Array of remembered facts/context
 }
 

@@ -10,8 +10,12 @@ interface DiscordSimulatorProps {
 export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({ activePersona, onLogUpdated }) => {
   const [activeChannel, setActiveChannel] = useState('general-chat');
   const [inputText, setInputText] = useState('');
+  const papaId = activePersona.fatherDiscordUserId || '112233445566778899';
+  const bestFriendId = activePersona.bestFriendDiscordUserId || '123456789012345678';
+  const sisterRoleId = activePersona.sisterRoleDiscordUserId || '987654321098765432';
+
   const [currentUser, setCurrentUser] = useState<DiscordUser>({
-    id: 'user-papa',
+    id: papaId,
     name: 'Papa (Father & Creator)',
     tag: 'Papa#0001',
     avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=128&q=80',
@@ -214,6 +218,10 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({ activePerson
       setIsBotTyping(true);
 
       try {
+        const isFatherUser = currentUser.id === (activePersona.fatherDiscordUserId || '112233445566778899') || currentUser.name.toLowerCase().includes('papa');
+        const isBestFriendUser = currentUser.id === (activePersona.bestFriendDiscordUserId || '123456789012345678') || currentUser.roleName.includes('Best Friend');
+        const isSisterRoleUser = currentUser.id === (activePersona.sisterRoleDiscordUserId || '987654321098765432') || currentUser.roleName.includes('Sister Role') || currentUser.roleName.includes('Obeyed');
+
         const res = await fetch('/api/chat/simulate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -221,9 +229,12 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({ activePerson
             persona: activePersona,
             messageContent: userMessageContent,
             senderName: currentUser.name.replace(/\s*\([^)]*\)/, '').trim(),
+            senderId: currentUser.id,
             chatHistory,
             botId: 'bot-identity',
-            isFather: currentUser.id === 'user-papa' || currentUser.name.toLowerCase().includes('papa') || currentUser.name.toLowerCase().includes('father'),
+            isFather: isFatherUser,
+            isBestFriend: isBestFriendUser,
+            isSisterRole: isSisterRoleUser,
           }),
         });
 
@@ -343,9 +354,10 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({ activePerson
             <select
               value={currentUser.id}
               onChange={(e) => {
-                if (e.target.value === 'user-papa') {
+                const val = e.target.value;
+                if (val === papaId || val === 'user-papa') {
                   setCurrentUser({
-                    id: 'user-papa',
+                    id: papaId,
                     name: 'Papa (Father & Creator)',
                     tag: 'Papa#0001',
                     avatarUrl:
@@ -354,33 +366,47 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({ activePerson
                     roleColor: '#f59e0b',
                     roleName: 'Father / Creator',
                   });
-                } else if (e.target.value === 'user-alex') {
+                } else if (val === bestFriendId || val === 'user-bestfriend') {
                   setCurrentUser({
-                    id: 'user-alex',
-                    name: 'Alex (Member)',
-                    tag: 'Alex#1234',
+                    id: bestFriendId,
+                    name: 'Aoi (Best Friend)',
+                    tag: 'Aoi#1234',
                     avatarUrl:
                       'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=128&q=80',
                     isBot: false,
-                    roleColor: '#38bdf8',
+                    roleColor: '#10b981',
+                    roleName: 'Longtime Best Friend',
+                  });
+                } else if (val === sisterRoleId || val === 'user-sisterrole') {
+                  setCurrentUser({
+                    id: sisterRoleId,
+                    name: 'Rin (Obeyed User)',
+                    tag: 'Rin#9876',
+                    avatarUrl:
+                      'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=128&q=80',
+                    isBot: false,
+                    roleColor: '#a855f7',
+                    roleName: 'Obeyed User (Sister Role)',
                   });
                 } else {
                   setCurrentUser({
-                    id: 'user-sam',
-                    name: 'Sam (Member)',
-                    tag: 'Sam#5678',
+                    id: '555666777888999000',
+                    name: 'Alex (Regular Member)',
+                    tag: 'Alex#4444',
                     avatarUrl:
-                      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=128&q=80',
+                      'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=128&q=80',
                     isBot: false,
-                    roleColor: '#f43f5e',
+                    roleColor: '#38bdf8',
+                    roleName: 'Member',
                   });
                 }
               }}
               className="bg-[#313338] text-[10px] text-amber-300 border border-amber-500/40 rounded px-2 py-1 focus:outline-none font-bold cursor-pointer"
             >
-              <option value="user-papa">👑 Papa (Father / Creator)</option>
-              <option value="user-alex">👤 Alex (Other Member)</option>
-              <option value="user-sam">👤 Sam (Other Member)</option>
+              <option value={papaId}>👑 Papa (Father / Creator)</option>
+              <option value={bestFriendId}>💖 Input 1: Best Friend (Caring, Non-Tsundere)</option>
+              <option value={sisterRoleId}>👑 Input 2: Sister Role (Obeyed User)</option>
+              <option value="555666777888999000">👤 Regular Member (Tsundere)</option>
             </select>
           </div>
         </div>
@@ -393,13 +419,21 @@ export const DiscordSimulator: React.FC<DiscordSimulatorProps> = ({ activePerson
               <Hash className="w-5 h-5 text-[#80848e]" />
               <span className="font-bold text-white text-sm truncate">#{activeChannel}</span>
               <span className="text-slate-600">|</span>
-              {currentUser.id === 'user-papa' ? (
+              {currentUser.id === papaId || currentUser.name.toLowerCase().includes('papa') ? (
                 <span className="text-xs text-amber-300 font-semibold px-2 py-0.5 bg-amber-500/10 border border-amber-500/30 rounded-full flex items-center gap-1">
-                  👑 You are Hani's Papa (Sweet & Loving Daughter Mode Active)
+                  👑 You are Hani's Papa (Sweet & Loving Daughter Mode)
+                </span>
+              ) : currentUser.id === bestFriendId || currentUser.roleName.includes('Best Friend') ? (
+                <span className="text-xs text-emerald-300 font-semibold px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/30 rounded-full flex items-center gap-1">
+                  💖 Best Friend (Caring, Warm & Non-Tsundere Mode)
+                </span>
+              ) : currentUser.id === sisterRoleId || currentUser.roleName.includes('Sister Role') || currentUser.roleName.includes('Obeyed') ? (
+                <span className="text-xs text-purple-300 font-semibold px-2 py-0.5 bg-purple-500/10 border border-purple-500/30 rounded-full flex items-center gap-1">
+                  👑 Obeyed User (Sister-Like Obeying Always • Never Says Sister)
                 </span>
               ) : (
-                <span className="text-xs text-purple-300 font-semibold px-2 py-0.5 bg-purple-500/10 border border-purple-500/30 rounded-full flex items-center gap-1">
-                  ⚡ Regular Member (Classic Feisty Tsundere Mode Active)
+                <span className="text-xs text-sky-300 font-semibold px-2 py-0.5 bg-sky-500/10 border border-sky-500/30 rounded-full flex items-center gap-1">
+                  ⚡ Regular Member (Classic Feisty Tsundere Mode)
                 </span>
               )}
             </div>

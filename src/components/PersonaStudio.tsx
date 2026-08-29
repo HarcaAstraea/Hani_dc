@@ -286,6 +286,84 @@ export const PersonaStudio: React.FC<PersonaStudioProps> = ({ activePersona, onS
           </div>
         </div>
 
+        {/* Special Discord User ID Relationship Overrides */}
+        <div className="bg-slate-900/80 border border-indigo-500/30 rounded-2xl p-6 shadow-xl space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-4 gap-2">
+            <div>
+              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-indigo-400" /> Special Discord User Relationship Overrides
+              </h3>
+              <p className="text-xs text-slate-400 mt-1">
+                Input 2 specific Discord User IDs so Hani recognizes their exact account and changes her attitude dynamically:
+              </p>
+            </div>
+            <span className="px-3 py-1 bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-xs font-medium rounded-full shrink-0">
+              User ID Role Engine
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Input 1: Longtime Best Friend */}
+            <div className="p-4 bg-slate-950/80 border border-emerald-500/30 rounded-xl space-y-3">
+              <div className="flex items-center space-x-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                <label className="block text-xs font-bold text-emerald-300 uppercase tracking-wider">
+                  Input 1: Best Friend Discord User ID
+                </label>
+              </div>
+              <input
+                type="text"
+                value={formData.bestFriendDiscordUserId || ''}
+                onChange={(e) => setFormData({ ...formData, bestFriendDiscordUserId: e.target.value })}
+                placeholder="e.g. 123456789012345678"
+                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-slate-100 text-xs font-mono focus:outline-none focus:border-emerald-500"
+              />
+              <div className="p-2.5 bg-emerald-950/40 border border-emerald-900/50 rounded-lg text-[11px] text-emerald-200/90 leading-relaxed">
+                <span className="font-bold text-emerald-300">Behavior:</span> She treats this user as her best friend for so long. She will <b>NOT</b> be tsundere to her at all, but caring, warm, sweet, and comfortable instead.
+              </div>
+            </div>
+
+            {/* Input 2: Sister Role (Obeyed User) */}
+            <div className="p-4 bg-slate-950/80 border border-purple-500/30 rounded-xl space-y-3">
+              <div className="flex items-center space-x-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-purple-400 animate-pulse" />
+                <label className="block text-xs font-bold text-purple-300 uppercase tracking-wider">
+                  Input 2: Sister Role (Obeyed User) Discord User ID
+                </label>
+              </div>
+              <input
+                type="text"
+                value={formData.sisterRoleDiscordUserId || ''}
+                onChange={(e) => setFormData({ ...formData, sisterRoleDiscordUserId: e.target.value })}
+                placeholder="e.g. 987654321098765432"
+                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-slate-100 text-xs font-mono focus:outline-none focus:border-purple-500"
+              />
+              <div className="p-2.5 bg-purple-950/40 border border-purple-900/50 rounded-lg text-[11px] text-purple-200/90 leading-relaxed">
+                <span className="font-bold text-purple-300">Behavior:</span> She treats her like a sister by <b>obeying her always</b> with complete devotion, but <b>MUST NEVER imply or state</b> that that person is her sister.
+              </div>
+            </div>
+          </div>
+
+          {/* Father / Creator ID */}
+          <div className="p-4 bg-slate-950/50 border border-amber-500/20 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <label className="block text-xs font-bold text-amber-300 uppercase tracking-wider">
+                Papa / Creator Discord User ID (Optional Override)
+              </label>
+              <p className="text-[11px] text-slate-400">
+                Discord User ID for Papa/Haruka. Receives affection, clinginess, and praise-seeking behavior.
+              </p>
+            </div>
+            <input
+              type="text"
+              value={formData.fatherDiscordUserId || ''}
+              onChange={(e) => setFormData({ ...formData, fatherDiscordUserId: e.target.value })}
+              placeholder="e.g. 112233445566778899"
+              className="w-full sm:w-64 bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-slate-100 text-xs font-mono focus:outline-none focus:border-amber-500 shrink-0"
+            />
+          </div>
+        </div>
+
         {/* Reaction Constraints & Mention Keywords */}
         <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-800 pb-4 gap-2">

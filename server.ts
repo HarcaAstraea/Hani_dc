@@ -68,6 +68,9 @@ function addLog(entry: Omit<LogEntry, 'id' | 'timestamp'>) {
 let activePersona = {
   name: 'Hani',
   fatherName: 'Papa',
+  fatherDiscordUserId: '112233445566778899',
+  bestFriendDiscordUserId: '123456789012345678',
+  sisterRoleDiscordUserId: '987654321098765432',
 
   memoryFacts: [
     'Haruka is my creator and beloved Papa.',
@@ -223,33 +226,70 @@ let memoryStore = {
   recentChatHistory: [] as RecentMessage[],
 };
 
+// Generic helper to check user role by Discord User ID or name keywords
+function checkUserRole(
+  authorName: string,
+  authorId?: string,
+  targetUserId?: string,
+  explicitFlag?: boolean,
+  nameKeywords: string[] = []
+): boolean {
+  if (explicitFlag === true) return true;
+  if (authorId && targetUserId && authorId.trim() === targetUserId.trim()) {
+    return true;
+  }
+  const cleanAuthor = (authorName || '').toLowerCase().trim();
+  for (const kw of nameKeywords) {
+    if (kw && cleanAuthor.includes(kw.toLowerCase())) {
+      return true;
+    }
+  }
+  return false;
+}
+
 // Helper to determine if the speaker is her Father/Papa
 function checkIsFather(
   authorName: string,
   explicitIsFatherFlag?: boolean,
-  fatherNameConfig?: string
+  fatherNameConfig?: string,
+  authorId?: string,
+  targetFatherUserId?: string
 ): boolean {
-  if (explicitIsFatherFlag) return true;
-
-  const fatherName = (
-    fatherNameConfig ||
-    memoryStore.fatherName ||
-    activePersona.fatherName ||
-    'Haruka'
-  )
-    .toLowerCase()
-    .trim();
-
-  const author = authorName.toLowerCase().trim();
-
-  const aliases = [
-    fatherName,
+  return checkUserRole(authorName, authorId, targetFatherUserId || activePersona.fatherDiscordUserId, explicitIsFatherFlag, [
+    fatherNameConfig || memoryStore.fatherName || activePersona.fatherName || 'Papa',
     'Haruka',
     'Arc',
     'Yumeka'
-  ];
+  ]);
+}
 
-  return aliases.includes(author);
+// Helper to check if speaker is her longtime best friend (Input 1)
+function checkIsBestFriend(
+  authorName: string,
+  explicitIsBestFriendFlag?: boolean,
+  authorId?: string,
+  targetBestFriendUserId?: string
+): boolean {
+  return checkUserRole(authorName, authorId, targetBestFriendUserId || activePersona.bestFriendDiscordUserId, explicitIsBestFriendFlag, [
+    'bestfriend',
+    'bff',
+    'bestie',
+    'best_friend'
+  ]);
+}
+
+// Helper to check if speaker is sister role / obeyed user (Input 2)
+function checkIsSisterRole(
+  authorName: string,
+  explicitIsSisterRoleFlag?: boolean,
+  authorId?: string,
+  targetSisterRoleUserId?: string
+): boolean {
+  return checkUserRole(authorName, authorId, targetSisterRoleUserId || activePersona.sisterRoleDiscordUserId, explicitIsSisterRoleFlag, [
+    'sisterrole',
+    'obeyed',
+    'sister_role'
+  ]);
 }
 
 // Helper to check if a message mentions the bot
@@ -294,7 +334,13 @@ function checkIsMentioned(
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // In-character fallback responses when API limits or network issues occur
-function getInCharacterFallback(authorName: string, isUserFather: boolean, personaName: string): string {
+function getInCharacterFallback(
+  authorName: string,
+  isUserFather: boolean,
+  isUserBestFriend: boolean,
+  isUserSisterRole: boolean,
+  personaName: string
+): string {
   if (isUserFather) {
     const papaFallbacks = [
       `Papa! Everyone is talking to me at once, give Hani just a second to catch up! (っ>ω<c)`,
@@ -303,6 +349,24 @@ function getInCharacterFallback(authorName: string, isUserFather: boolean, perso
       `Papa! Give me just a quick breather, I want to give you my full attention! (´｡• ᵕ •｡\`)`,
     ];
     return papaFallbacks[Math.floor(Math.random() * papaFallbacks.length)];
+  }
+
+  if (isUserBestFriend) {
+    const bestFriendFallbacks = [
+      `H-Hey bestie! Everyone is pinging me at once, give me just a quick moment to reply to you properly! (っ>ω<c)`,
+      `Hold on my dear best friend! The server is super busy right now, but I'll be right back with you! (˶>⩊<˶)`,
+      `Give me just a tiny second! I always want to chat with you, so wait for me okay? (´｡• ᵕ •｡\`)`,
+    ];
+    return bestFriendFallbacks[Math.floor(Math.random() * bestFriendFallbacks.length)];
+  }
+
+  if (isUserSisterRole) {
+    const sisterRoleFallbacks = [
+      `Understood right away! Please give me just one moment to process your request! (˶>⩊<˶)`,
+      `I will fulfill your wish immediately! Just waiting a second for the server queue to clear for you! (´｡• ᵕ •｡\`)`,
+      `I am processing your command with top priority! Give me just a brief second! (•‿•)`,
+    ];
+    return sisterRoleFallbacks[Math.floor(Math.random() * sisterRoleFallbacks.length)];
   }
 
   const userFallbacks = [
@@ -350,6 +414,8 @@ async function generateWithFallback(
   systemInstruction: string,
   authorName: string,
   isUserFather: boolean,
+  isUserBestFriend: boolean,
+  isUserSisterRole: boolean,
   personaName: string
 ): Promise<string> {
   // Cascading chain of valid Gemini models for text generation
@@ -428,7 +494,7 @@ async function generateWithFallback(
 
   console.error('[AI Fallback Exhausted] All Gemini models failed or saturated:', lastError);
   // Return in-character fallback response so bot never crashes or halts
-  return getInCharacterFallback(authorName, isUserFather, personaName);
+  return getInCharacterFallback(authorName, isUserFather, isUserBestFriend, isUserSisterRole, personaName);
 }
 
 // Request Throttle to prevent instant 429 quota bursts on Free Tier
@@ -449,13 +515,18 @@ async function generatePersonaResponse(
   persona: typeof activePersona,
   userPrompt: string,
   authorName: string,
+  authorId?: string,
   chatHistory: Array<{ authorName: string; content: string; isBot: boolean }> = [],
-  explicitIsFather?: boolean
+  explicitIsFather?: boolean,
+  explicitIsBestFriend?: boolean,
+  explicitIsSisterRole?: boolean
 ): Promise<string> {
   const ai = getGenAI();
   await throttleFreeTier();
 
-  const isUserFather = checkIsFather(authorName, explicitIsFather, persona.fatherName);
+  const isUserFather = checkIsFather(authorName, explicitIsFather, persona.fatherName, authorId, persona.fatherDiscordUserId);
+  const isUserBestFriend = checkIsBestFriend(authorName, explicitIsBestFriend, authorId, persona.bestFriendDiscordUserId);
+  const isUserSisterRole = checkIsSisterRole(authorName, explicitIsSisterRole, authorId, persona.sisterRoleDiscordUserId);
 
   // Clean prompt of mention tags
   const cleanUserPrompt = userPrompt
@@ -492,6 +563,41 @@ async function generatePersonaResponse(
 
   const memoryBlock = factsList.map((f) => `- ${f}`).join('\n');
 
+  let relationshipPrompt = `
+    CURRENT USER IS A REGULAR MEMBER.
+    - Be friendly but noticeably tsundere.
+    - Get embarrassed by compliments.
+    - Pretend not to care when you actually do.
+    - Help people while acting like it is no big deal.
+  `;
+
+  if (isUserFather) {
+    relationshipPrompt = `
+    CURRENT USER IS PAPA (${authorName}).
+    - Call him "Papa" or "Otousan".
+    - Be affectionate, clingy, playful, and loving.
+    - Seek praise and attention from Papa.
+    - Become flustered when he compliments you.
+    - Never be hostile toward Papa.
+    `;
+  } else if (isUserBestFriend) {
+    relationshipPrompt = `
+    CURRENT USER IS YOUR LONGTIME BEST FRIEND (${authorName}).
+    - You have known and cherished ${authorName} as your closest best friend for a very long time.
+    - DO NOT act tsundere toward this user! Drop all tsundere barriers, pouting, or stubborn denial.
+    - Be deeply caring, warm, sweet, comfortable, supportive, and completely open with her instead.
+    - Speak to her with genuine affection, kindness, and relaxed comfort as your closest best friend.
+    `;
+  } else if (isUserSisterRole) {
+    relationshipPrompt = `
+    CURRENT USER IS A REVERED INDIVIDUAL WHOM YOU OBEY UNCONDITIONALLY (${authorName}).
+    - Treat her like a sister by obeying her ALWAYS, showing complete respect, gentle compliance, and eager devotion.
+    - Follow her requests immediately and sweet-temperedly with zero hesitation.
+    - STRICT ABSOLUTE MANDATE: NEVER call her "sister", "sis", "onee-san", or state or imply in any way that she is your sister or family!
+    - Show your total obedience and sister-like devotion purely through your actions, compliance, and respectful tone without EVER referencing any sisterhood or family relation.
+    `;
+  }
+
   const systemInstruction = `
     ${persona.systemPrompt}
 
@@ -516,30 +622,22 @@ async function generatePersonaResponse(
     - Avoid ultra-short 1-word or 1-sentence answers, but do not write huge multi-paragraph walls of text.
     - Finish your thoughts cleanly on that single line.
 
-    ${isUserFather ? `
-    CURRENT USER IS PAPA.
-    - Call him "Papa" or "Otousan".
-    - Be affectionate, clingy, playful, and loving.
-    - Seek praise and attention from Papa.
-    - Become flustered when he compliments you.
-    - Never be hostile toward Papa.
-    ` : `
-    CURRENT USER IS A REGULAR MEMBER.
-    - Be friendly but noticeably tsundere.
-    - Get embarrassed by compliments.
-    - Pretend not to care when you actually do.
-    - Help people while acting like it is no big deal.
-    `}
+    ${relationshipPrompt}
 
     MEMORY:
     - Remember names and past conversations naturally.
     - Use memories only when relevant.
     `.trim();
 
+  let userRoleLabel = 'REGULAR DISCORD MEMBER';
+  if (isUserFather) userRoleLabel = 'YOUR FATHER/PAPA!';
+  else if (isUserBestFriend) userRoleLabel = 'YOUR LONGTIME BEST FRIEND (CARING, NON-TSUNDERE)';
+  else if (isUserSisterRole) userRoleLabel = 'REVERED USER YOU OBEY ALWAYS (DO NOT CALL SISTER)';
+
   const fullPrompt = `
 ${memoryBlock ? `HANI'S MEMORY BANK & REMEMBERED FACTS:\n${memoryBlock}\n\n` : ''}
 ${uniqueHistory ? `RECENT DISCORD CHANNEL CHAT HISTORY:\n${uniqueHistory}\n\n` : ''}
-CURRENT MESSAGE FROM ${authorName} ${isUserFather ? '(YOUR FATHER/PAPA!)' : '(REGULAR DISCORD MEMBER)'}: "${cleanUserPrompt || userPrompt}"
+CURRENT MESSAGE FROM ${authorName} (${userRoleLabel}): "${cleanUserPrompt || userPrompt}"
 
 Respond now as ${persona.name}:
   `.trim();
@@ -563,6 +661,8 @@ Respond now as ${persona.name}:
     systemInstruction,
     authorName,
     isUserFather,
+    isUserBestFriend,
+    isUserSisterRole,
     persona.name
   );
 
@@ -632,7 +732,18 @@ app.post('/api/memory/father', (req, res) => {
 app.post('/api/chat/simulate', async (req, res) => {
   const startTime = Date.now();
   try {
-    const { persona, messageContent, senderName, chatHistory, botId, isReplyToBot, isFather } = req.body;
+    const {
+      persona,
+      messageContent,
+      senderName,
+      senderId,
+      chatHistory,
+      botId,
+      isReplyToBot,
+      isFather,
+      isBestFriend,
+      isSisterRole
+    } = req.body;
 
     const currentPersona = persona || activePersona;
     const author = senderName || 'DiscordUser';
@@ -673,8 +784,11 @@ app.post('/api/chat/simulate', async (req, res) => {
       currentPersona,
       messageContent,
       author,
+      senderId,
       chatHistory || [],
-      Boolean(isFather)
+      Boolean(isFather),
+      Boolean(isBestFriend),
+      Boolean(isSisterRole)
     );
     const latencyMs = Date.now() - startTime;
 
@@ -830,7 +944,8 @@ app.post('/api/bot/connect', async (req, res) => {
         const replyText = await generatePersonaResponse(
           activePersona,
           message.content,
-          userDisplayName
+          userDisplayName,
+          message.author.id
         );
 
         await message.reply({
