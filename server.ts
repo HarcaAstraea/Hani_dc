@@ -1,5 +1,6 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import { GoogleGenAI } from '@google/genai';
 import { Client, GatewayIntentBits, Events } from 'discord.js';
 
@@ -905,26 +906,186 @@ app.post('/api/persona/generate-avatar', async (req, res) => {
   }
 });
 
-// Setup Vite Development or Static Production Server
-async function startServer() {
-  if (process.env.NODE_ENV !== 'production') {
-    const { createServer: createViteServer } = await import('vite');
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa',
-    });
-    app.use(vite.middlewares);
-  } else {
-    const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
-    });
+// Auto-connect to Discord Gateway if token is set in environment
+async function autoConnectDiscordBotFromEnv() {
+  const token = process.env.DISCORD_BOT_TOKEN || process.env.DISCORD_TOKEN;
+  if (!token) {
+    console.log('[Discord Gateway] No DISCORD_BOT_TOKEN environment variable found. Bot standby mode.');
+    return;
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Discord AI Bot server running on http://0.0.0.0:${PORT}`);
+  console.log('[Discord Gateway] Token found in environment. Connecting to Discord Gateway...');
+  try {
+    if (discordClient) {
+      discordClient.destroy();
+      discordClient = null;
+    }
+
+    const client = new Client({
+      intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent,
+        GatewayIntentBits.DirectMessages,
+      ],
+    });
+
+    client.once(Events.ClientReady, (readyClient) => {
+      discordStatus = {
+        isConnected: true,
+        botUser: {
+          username: readyClient.user.username,
+          id: readyClient.user.id,
+          avatar: readyClient.user.displayAvatarURL(),
+          discriminator: readyClient.user.discriminator,
+        },
+        guildCount: readyClient.guilds.cache.size,
+        uptimeSeconds: 0,
+        startTime: Date.now(),
+        lastEventTime: new Date().toLocaleTimeString(),
+        lastError: null,
+      };
+
+      console.log(`[Discord Gateway] Online as ${readyClient.user.tag}!`);
+      addLog({
+        eventType: 'discord_gateway_event',
+        channelName: 'Discord Gateway',
+        authorName: readyClient.user.username,
+        userPrompt: 'Bot Connected & Online',
+        details: `Connected as ${readyClient.user.tag} across ${readyClient.guilds.cache.size} server(s).`,
+      });
+    });
+
+    client.on(Events.MessageCreate, async (message) => {
+      if (message.author.bot) return;
+
+      const userDisplayName =
+        message.member?.displayName ||
+        (message.author as any).displayName ||
+        (message.author as any).globalName ||
+        message.author.username;
+
+      const botId = client.user?.id;
+      const botName = activePersona.name || client.user?.username || 'Bot';
+
+      const isReplyToBot = message.reference?.messageId
+        ? (await message.channel.messages.fetch(message.reference.messageId).catch(() => null))?.author.id === botId
+        : false;
+
+      const isMentioned = checkIsMentioned(
+        message.content,
+        botName,
+        botId,
+        activePersona.mentionKeywords || [],
+        isReplyToBot
+      );
+
+      if (activePersona.onlyReactWhenMentioned && !isMentioned) {
+        addLog({
+          eventType: 'ignored_no_mention',
+          channelName: `#${(message.channel as any).name || 'DM'}`,
+          authorName: userDisplayName,
+          userPrompt: message.content,
+          details: `Discord message ignored: ${userDisplayName} did not mention bot.`,
+        });
+        return;
+      }
+
+      addLog({
+        eventType: 'mention_received',
+        channelName: `#${(message.channel as any).name || 'DM'}`,
+        authorName: userDisplayName,
+        userPrompt: message.content,
+        details: `Mention received in Discord server! Generating AI reply as "${activePersona.name}"...`,
+      });
+
+      try {
+        if ('sendTyping' in message.channel) {
+          (message.channel as any).sendTyping().catch(() => {});
+        }
+
+        const replyText = await generatePersonaResponse(
+          activePersona,
+          message.content,
+          userDisplayName
+        );
+
+        await message.reply({
+          content: replyText,
+          allowedMentions: { repliedUser: true },
+        });
+
+        addLog({
+          eventType: 'bot_replied',
+          channelName: `#${(message.channel as any).name || 'DM'}`,
+          authorName: activePersona.name,
+          userPrompt: message.content,
+          botReply: replyText,
+          details: `Successfully replied to ${userDisplayName} in Discord.`,
+        });
+      } catch (err: any) {
+        console.error('Error handling Discord message:', err);
+        addLog({
+          eventType: 'system_error',
+          channelName: `#${(message.channel as any).name || 'DM'}`,
+          authorName: 'Discord Gateway',
+          userPrompt: message.content,
+          details: `Failed to respond: ${err.message}`,
+        });
+      }
+    });
+
+    await client.login(token);
+    discordClient = client;
+  } catch (error: any) {
+    console.error('[Discord Gateway] Auto-connect error:', error);
+    discordStatus.lastError = error.message;
+    discordStatus.isConnected = false;
+  }
+}
+
+// Setup Vite Development or Static Production Server
+async function startServer() {
+  const distPath = path.join(process.cwd(), 'dist');
+  const hasBuiltFrontend = fs.existsSync(path.join(distPath, 'index.html'));
+
+  if (hasBuiltFrontend || process.env.NODE_ENV === 'production') {
+    app.use(express.static(distPath));
+    app.get('*', (req, res) => {
+      const indexPath = path.join(distPath, 'index.html');
+      if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+      } else {
+        res.status(404).send('Frontend build not found. Please run npm run build.');
+      }
+    });
+    console.log('[Server Mode] Production static file server active.');
+  } else {
+    try {
+      const { createServer: createViteServer } = await import('vite');
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: 'spa',
+      });
+      app.use(vite.middlewares);
+      console.log('[Server Mode] Vite dev middleware active.');
+    } catch (err) {
+      console.warn('[Server Mode] Vite import unavailable, using static fallback:', err);
+      if (fs.existsSync(distPath)) {
+        app.use(express.static(distPath));
+        app.get('*', (req, res) => res.sendFile(path.join(distPath, 'index.html')));
+      }
+    }
+  }
+
+  const serverPort = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+
+  app.listen(serverPort, '0.0.0.0', () => {
+    console.log(`Discord AI Bot server running on http://0.0.0.0:${serverPort}`);
   });
+
+  // Trigger Discord Bot Auto-Connect if token is configured in environment
+  autoConnectDiscordBotFromEnv();
 }
 
 startServer();
