@@ -1,13 +1,12 @@
 import express from 'express';
 import path from 'path';
-import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import { Client, GatewayIntentBits, Events } from 'discord.js';
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
 
-const PORT = 3000;
+const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 
 // Gemini AI Client setup
 const getGenAI = () => {
@@ -909,6 +908,7 @@ app.post('/api/persona/generate-avatar', async (req, res) => {
 // Setup Vite Development or Static Production Server
 async function startServer() {
   if (process.env.NODE_ENV !== 'production') {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
