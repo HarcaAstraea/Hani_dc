@@ -319,7 +319,7 @@ export const PersonaStudio: React.FC<PersonaStudioProps> = ({ activePersona, onS
                 className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-slate-100 text-xs font-mono focus:outline-none focus:border-emerald-500"
               />
               <div className="p-2.5 bg-emerald-950/40 border border-emerald-900/50 rounded-lg text-[11px] text-emerald-200/90 leading-relaxed">
-                <span className="font-bold text-emerald-300">Behavior:</span> Acts like a close best friend in a <b>very subtle, natural manner</b> (relaxed, zero tsundere walls, without ever announcing or over-implying the relationship).
+                <span className="font-bold text-emerald-300">Behavior:</span> Subtle long-time best friend. Softens her tsundere prickly act into natural, quiet warmth, ease, and comfort without explicitly blurting out "bestie" or stating her status out loud.
               </div>
             </div>
 
@@ -339,7 +339,7 @@ export const PersonaStudio: React.FC<PersonaStudioProps> = ({ activePersona, onS
                 className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-slate-100 text-xs font-mono focus:outline-none focus:border-purple-500"
               />
               <div className="p-2.5 bg-purple-950/40 border border-purple-900/50 rounded-lg text-[11px] text-purple-200/90 leading-relaxed">
-                <span className="font-bold text-purple-300">Behavior:</span> Acts like an attentive sister in a <b>very subtle manner</b>: naturally agreeable and helpful without <b>EVER stating or implying</b> any sister, family, or obedience labels.
+                <span className="font-bold text-purple-300">Behavior:</span> Subtle sisterly deference & obedience. Naturally yields and obeys her requests with gentle readiness and quiet respect, without ever blurting out "sister" or sounding like a servant.
               </div>
             </div>
           </div>
@@ -351,7 +351,7 @@ export const PersonaStudio: React.FC<PersonaStudioProps> = ({ activePersona, onS
                 Papa / Creator Discord User ID (Optional Override)
               </label>
               <p className="text-[11px] text-slate-400">
-                Discord User ID for Papa/Haruka. Acts like a daughter in a subtle, warm manner without excessive relationship declarations.
+                Discord User ID for Papa/Haruka. Receives affection, clinginess, and praise-seeking behavior.
               </p>
             </div>
             <input
